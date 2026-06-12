@@ -56,7 +56,7 @@ contentRouter.get('/:slug', asyncHandler(async (req: Request, res: Response, nex
 
 contentRouter.post('/',
   authMiddleware,
-  roleMiddleware(['ADMIN_CONTENT', 'SUPER_ADMIN']),
+  roleMiddleware(['ADMIN', 'SUPER_ADMIN']),
   validateBody(createArticleSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const { title, slug, content, summary, type, tags, isPublished } = req.body as {
@@ -81,7 +81,7 @@ contentRouter.post('/',
 
 contentRouter.patch('/:id',
   authMiddleware,
-  roleMiddleware(['ADMIN_CONTENT', 'SUPER_ADMIN']),
+  roleMiddleware(['ADMIN', 'SUPER_ADMIN']),
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params['id'] as string;
     const doc = await db.collection(COLLECTIONS.CONTENT_ARTICLES).doc(id).get();
@@ -100,5 +100,15 @@ contentRouter.patch('/:id',
     await db.collection(COLLECTIONS.CONTENT_ARTICLES).doc(id).update(updateData);
     const updated = await db.collection(COLLECTIONS.CONTENT_ARTICLES).doc(id).get();
     res.json({ success: true, data: { id: updated.id, ...updated.data() }, message: 'Artikel berhasil diperbarui' });
+  }),
+);
+
+contentRouter.get('/admin/all',
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'SUPER_ADMIN']),
+  asyncHandler(async (_req: Request, res: Response) => {
+    const snap = await db.collection(COLLECTIONS.CONTENT_ARTICLES).orderBy('createdAt', 'desc').get();
+    const articles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ success: true, data: { articles, total: articles.length } });
   }),
 );

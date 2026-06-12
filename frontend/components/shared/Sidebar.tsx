@@ -12,7 +12,9 @@ import {
   X,
   LogOut,
   Image,
-  ShieldCheck,
+  Users,
+  FileText,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,16 +25,11 @@ interface SidebarProps {
 }
 
 const adminNavItems = [
-  {
-    href: '/admin/hero',
-    label: 'Kelola Hero',
-    icon: Image,
-  },
-  {
-    href: '/admin/dashboard',
-    label: 'Kelola Konten',
-    icon: ShieldCheck,
-  },
+  { href: '/admin/dashboard', label: 'Panel Admin', icon: LayoutDashboard },
+  { href: '/admin/users', label: 'Pengguna', icon: Users },
+  { href: '/admin/content', label: 'Konten Edukasi', icon: FileText },
+  { href: '/admin/hero', label: 'Hero Banner', icon: Image },
+  { href: '/admin/logs', label: 'Log Aktivitas', icon: ScrollText },
 ];
 
 const navItems = [
