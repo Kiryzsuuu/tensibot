@@ -1,0 +1,61 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "editor.inlayHints.enabled": "on",
+  "typescript.inlayHints.parameterNames.enabled": "all",
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+
+  "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.defaultProfile.linux": "bash",
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.test.ts, ${capture}.spec.ts",
+    "*.tsx": "${capture}.test.tsx, ${capture}.stories.tsx",
+    "package.json": "package-lock.json, .npmrc, .nvmrc, tsconfig*.json, .eslintrc*, .prettierrc*, vitest.config.*",
+    "next.config.*": "next-env.d.ts, .next",
+    "prisma": "*.prisma, migrations"
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.prisma": true
+  },
+
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true
+  },
+
+  "git.autofetch": true,
+  "git.confirmSync": false,
+
+  "claude.autoAcceptEdits": false,
+  "claude.defaultMode": "plan"
+}

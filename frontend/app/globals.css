@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,400&family=Merriweather:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #2E86C1;
+  --color-primary-dark: #1A5276;
+  --color-primary-deeper: #154360;
+  --color-primary-light: #EAF4FB;
+  --color-primary-mid: #AED6F1;
+  --color-primary-accent: #2980B9;
+  --color-gold: #F5A623;
+  --color-red: #C0392B;
+  --color-offwhite: #F4F8FC;
+  --color-text: #1A2A3A;
+  --color-border: #D6E8F5;
+  --sidebar-width: 248px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Nunito Sans', sans-serif;
+  background-color: var(--color-offwhite);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #AED6F1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2E86C1;
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-xl border border-[#D6E8F5] shadow-card;
+  }
+  .btn-primary {
+    @apply bg-[#2E86C1] hover:bg-[#2980B9] active:bg-[#1A5276] text-white font-semibold px-5 py-2.5 rounded-lg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-[#EAF4FB] hover:bg-[#AED6F1] text-[#1A5276] font-semibold px-5 py-2.5 rounded-lg transition-colors duration-150;
+  }
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-lg border border-[#D6E8F5] bg-white text-[#1A2A3A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E86C1] focus:border-transparent transition-all duration-150;
+  }
+  .bp-number {
+    font-family: 'Merriweather', serif;
+    @apply font-bold;
+  }
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .status-normal {
+    @apply bg-green-100 text-green-800;
+  }
+  .status-elevated {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  .status-stage1 {
+    @apply bg-orange-100 text-orange-800;
+  }
+  .status-stage2 {
+    @apply bg-red-100 text-red-800;
+  }
+  .status-crisis {
+    @apply bg-red-200 text-red-900;
+  }
+  .page-title {
+    @apply text-2xl font-bold text-[#1A2A3A];
+  }
+  .section-title {
+    @apply text-lg font-bold text-[#1A2A3A];
+  }
+}
+
+/* Typing indicator animation */
+@keyframes bounce-dot {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.typing-dot {
+  animation: bounce-dot 1.4s infinite ease-in-out;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0.32s; }
+
+/* Sidebar transition */
+.sidebar-transition {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

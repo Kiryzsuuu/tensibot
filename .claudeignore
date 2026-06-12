@@ -1,0 +1,69 @@
+# Claude Code akan mengabaikan file/folder ini
+# Agar tidak masuk ke context window yang tidak perlu
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+.next/
+dist/
+build/
+out/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment (JANGAN dibaca Claude — berisi secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+
+# Prisma generated
+.prisma/
+prisma/migrations/*/migration.sql
+
+# Cache & logs
+.cache/
+*.log
+logs/
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary
+tmp/
+temp/
+
+# Large binary/media
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+*.mp3
+*.pdf
+*.zip
+*.tar.gz
+
+# Lock files (jarang perlu dibaca Claude)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

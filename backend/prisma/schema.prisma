@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN_HEALTH
+  ADMIN_CONTENT
+  SUPER_ADMIN
+}
+
+enum BPCategory {
+  NORMAL
+  ELEVATED
+  STAGE_1
+  STAGE_2
+  CRISIS
+}
+
+enum MedStatus {
+  TAKEN
+  SKIPPED
+  PENDING
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile       UserProfile?
+  bpRecords     BloodPressureRecord[]
+  medications   UserMedication[]
+  medicationLogs MedicationLog[]
+  chatSessions  ChatSession[]
+  healthGoals   HealthGoal[]
+  notifications Notification[]
+  adminLogs     AdminLog[]            @relation("AdminActions")
+
+  @@index([email])
+  @@map("users")
+}
+
+model UserProfile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  fullName    String
+  dateOfBirth DateTime?
+  weight      Float?    // in kg
+  height      Float?    // in cm
+  diagnosis   String?   // hypertension notes/diagnosis summary
+  phone       String?
+  address     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model BloodPressureRecord {
+  id         String     @id @default(cuid())
+  userId     String
+  systolic   Int
+  diastolic  Int
+  pulse      Int?
+  measuredAt DateTime   @default(now())
+  category   BPCategory
+  notes      String?
+  isDeleted  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, measuredAt])
+  @@index([userId, isDeleted])
+  @@map("blood_pressure_records")
+}
+
+model UserMedication {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  dosage    String
+  frequency String    // e.g. "2x sehari", "1x sehari pagi"
+  times     String[]  // e.g. ["08:00", "20:00"]
+  startDate DateTime
+  endDate   DateTime?
+  notes     String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicationLogs MedicationLog[]
+
+  @@index([userId, isActive])
+  @@map("user_medications")
+}
+
+model MedicationLog {
+  id            String    @id @default(cuid())
+  userId        String
+  medicationId  String
+  scheduledTime DateTime
+  status        MedStatus @default(PENDING)
+  takenAt       DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medication UserMedication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scheduledTime])
+  @@map("medication_logs")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String   @default("Sesi Baru")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([userId, isActive])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String   // "user" | "assistant"
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("chat_messages")
+}
+
+model ContentArticle {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  summary     String
+  type        String    // e.g. "article", "tip", "news"
+  tags        String[]
+  publishedAt DateTime?
+  authorId    String
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([isPublished, publishedAt])
+  @@map("content_articles")
+}
+
+model HealthGoal {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // e.g. "systolic_target", "weight_loss", "medication_compliance"
+  target    Float
+  unit      String    // e.g. "mmHg", "kg", "%"
+  deadline  DateTime?
+  achieved  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("health_goals")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String   // e.g. "medication_reminder", "bp_alert", "system"
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AdminLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String
+  targetId   String?
+  targetType String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  admin User @relation("AdminActions", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@map("admin_logs")
+}

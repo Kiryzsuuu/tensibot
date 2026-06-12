@@ -1,0 +1,335 @@
+// backend/prisma/schema.prisma
+// Jalankan: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN_CONTENT
+  ADMIN_HEALTH
+  SUPER_ADMIN
+}
+
+enum BPCategory {
+  NORMAL    // <120/80
+  ELEVATED  // 120-129/<80
+  STAGE_1   // 130-139/80-89
+  STAGE_2   // >=140/>=90
+  CRISIS    // >180/>120
+}
+
+enum MedStatus {
+  TAKEN
+  SKIPPED
+  PENDING
+}
+
+enum InputMethod {
+  MANUAL
+  BLUETOOTH
+}
+
+enum ContentType {
+  ARTICLE
+  VIDEO
+  INFOGRAPHIC
+  FAQ
+}
+
+// ─── MODELS ───────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  isDeleted    Boolean  @default(false)
+
+  profile          UserProfile?
+  bpRecords        BloodPressureRecord[]
+  medications      UserMedication[]
+  chatSessions     ChatSession[]
+  healthGoals      HealthGoal[]
+  bookmarks        ContentBookmark[]
+  notifications    Notification[]
+  pushSubscription PushSubscription?
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model UserProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Data pribadi
+  fullName        String
+  birthDate       DateTime?
+  gender          String?   // 'MALE' | 'FEMALE'
+  phone           String?
+  city            String?
+
+  // Data fisik
+  weightKg        Float?
+  heightCm        Float?
+  // BMI dihitung di aplikasi: weightKg / (heightCm/100)^2
+
+  // Riwayat medis
+  diagnosisYear   Int?      // Tahun pertama didiagnosis hipertensi
+  comorbidities   String[]  // ['DM', 'CKD', 'CHD', 'STROKE']
+
+  // Kontak darurat
+  emergencyName   String?
+  emergencyPhone  String?
+  emergencyRel    String?   // Hubungan (suami, istri, anak, dll.)
+
+  // Preferensi
+  bpReminderTime  String?   @default("07:00") // format "HH:MM" WIB
+  targetSystolic  Int?      @default(130)
+  targetDiastolic Int?      @default(80)
+  avatarUrl       String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("user_profiles")
+}
+
+model BloodPressureRecord {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  systolic    Int        // 60–300 mmHg
+  diastolic   Int        // 40–200 mmHg
+  pulse       Int?       // 30–250 bpm
+  category    BPCategory
+  measuredAt  DateTime   // Waktu pengukuran aktual (UTC)
+  inputMethod InputMethod @default(MANUAL)
+  deviceInfo  String?    // Info tensimeter bluetooth
+  notes       String?
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  isDeleted   Boolean    @default(false)
+
+  @@index([userId, measuredAt])
+  @@index([userId, category])
+  @@map("blood_pressure_records")
+}
+
+model Medication {
+  id           String  @id @default(cuid())
+  name         String  @unique // "Amlodipine"
+  genericName  String?
+  drugClass    String  // "CCB", "ARB", "Beta-blocker", dll.
+  dosageForms  String[] // ["5mg", "10mg"]
+  description  String?
+  isActive     Boolean @default(true)
+
+  userMedications UserMedication[]
+
+  @@map("medications")
+}
+
+model UserMedication {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicationId  String
+  medication    Medication @relation(fields: [medicationId], references: [id])
+
+  dose          String    // "5mg", "10mg"
+  frequency     String    // "ONCE_DAILY", "TWICE_DAILY", "THREE_TIMES_DAILY"
+  scheduleTimes String[]  // ["07:00", "19:00"] format WIB
+  instructions  String?   // "Setelah makan", "Sebelum tidur"
+  prescribedBy  String?   // Nama dokter
+  startDate     DateTime
+  endDate       DateTime?
+  isActive      Boolean   @default(true)
+
+  logs          MedicationLog[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId, isActive])
+  @@map("user_medications")
+}
+
+model MedicationLog {
+  id               String         @id @default(cuid())
+  userMedicationId String
+  userMedication   UserMedication @relation(fields: [userMedicationId], references: [id], onDelete: Cascade)
+
+  scheduledTime    DateTime       // Jadwal seharusnya (UTC)
+  takenAt          DateTime?      // Waktu aktual minum (UTC), null jika skip
+  status           MedStatus      @default(PENDING)
+  skipReason       String?
+  confirmedBy      String?        @default("USER_SELF")
+
+  createdAt        DateTime       @default(now())
+
+  @@index([userMedicationId, scheduledTime])
+  @@index([status, scheduledTime])
+  @@map("medication_logs")
+}
+
+model ChatSession {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title        String?   // Auto-generated dari pesan pertama
+  messageCount Int       @default(0)
+  tokenCount   Int       @default(0) // Total token dipakai (untuk cost tracking)
+  rating       Int?      // 1–5, diisi pengguna di akhir sesi
+  startedAt    DateTime  @default(now())
+  endedAt      DateTime?
+
+  messages     ChatMessage[]
+
+  @@index([userId, startedAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  sessionId   String
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  role        String      // "user" | "assistant"
+  content     String      // Teks pesan
+  tokenCount  Int?        // Token untuk pesan ini
+  createdAt   DateTime    @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("chat_messages")
+}
+
+model HealthGoal {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  goalType    String    // "BP_TARGET", "WEIGHT_TARGET", "MEDICATION_COMPLIANCE"
+  targetValue String    // JSON string: { systolic: 130, diastolic: 80 }
+  startDate   DateTime
+  endDate     DateTime?
+  achievedAt  DateTime?
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("health_goals")
+}
+
+model ContentArticle {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  body        String      // Markdown
+  excerpt     String?     // Ringkasan 1-2 kalimat
+  contentType ContentType @default(ARTICLE)
+  category    String      // "DIET", "EXERCISE", "MEDICATION", "STRESS", "SLEEP"
+  tags        String[]
+  thumbnailUrl String?
+  videoUrl    String?     // Untuk tipe VIDEO
+  author      String      @default("Tim Tensi-Bot")
+  readMinutes Int?
+  viewCount   Int         @default(0)
+  isPublished Boolean     @default(false)
+  publishedAt DateTime?
+
+  bookmarks   ContentBookmark[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([isPublished, publishedAt])
+  @@index([category])
+  @@map("content_articles")
+}
+
+model ContentBookmark {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId  String
+  article    ContentArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+
+  @@unique([userId, articleId])
+  @@map("content_bookmarks")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      String    // "BP_REMINDER", "MED_REMINDER", "BP_ALERT", "WEEKLY_SUMMARY", "BROADCAST"
+  title     String
+  body      String
+  data      String?   // JSON payload tambahan
+  sentAt    DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([userId, sentAt])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint     String
+  p256dhKey    String
+  authKey      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("push_subscriptions")
+}
+
+model AdminLog {
+  id         String   @id @default(cuid())
+  adminId    String   // ID admin yang melakukan aksi
+  action     String   // "VIEW_USER", "SUSPEND_USER", "PUBLISH_ARTICLE", dll.
+  targetType String?  // "USER", "ARTICLE", "NOTIFICATION"
+  targetId   String?
+  ipAddress  String?
+  userAgent  String?
+  details    String?  // JSON detail tambahan
+  createdAt  DateTime @default(now())
+
+  @@index([adminId, createdAt])
+  @@index([action])
+  @@map("admin_logs")
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
