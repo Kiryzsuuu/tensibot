@@ -45,7 +45,7 @@ const updateMedicationSchema = z
   });
 
 const logMedicationSchema = z.object({
-  scheduledTime: z.string().datetime({ message: 'Format waktu jadwal tidak valid' }),
+  scheduledTime: z.string().datetime({ message: 'Format waktu jadwal tidak valid' }).optional(),
   status: z.enum(['TAKEN', 'SKIPPED'], {
     errorMap: () => ({ message: 'Status harus TAKEN atau SKIPPED' }),
   }),

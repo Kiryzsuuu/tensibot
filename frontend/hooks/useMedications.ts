@@ -31,10 +31,20 @@ export function useTodayMedications() {
   });
 }
 
+interface CreateMedicationInput {
+  name: string;
+  dosage: string;
+  frequency: string;
+  times: string[];
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+}
+
 export function useCreateMedication() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: Omit<Medication, 'id' | 'userId' | 'isActive'>) => {
+    mutationFn: async (payload: CreateMedicationInput) => {
       const res = await api.post<ApiResponse<Medication>>('/medications', payload);
       return res.data.data!;
     },

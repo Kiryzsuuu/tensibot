@@ -100,7 +100,7 @@ export const logMedication = asyncHandler(
     if (!req.user) return next(new AppError('Unauthorized', 401, 'UNAUTHORIZED'));
 
     const { scheduledTime, status, takenAt, notes } = req.body as {
-      scheduledTime: string;
+      scheduledTime?: string;
       status: 'TAKEN' | 'SKIPPED';
       takenAt?: string;
       notes?: string;
@@ -109,7 +109,7 @@ export const logMedication = asyncHandler(
     const log = await MedService.logMedication({
       userId: req.user.userId,
       medicationId: req.params['id'] as string,
-      scheduledTime: new Date(scheduledTime),
+      scheduledTime: scheduledTime ? new Date(scheduledTime) : new Date(),
       status,
       takenAt: takenAt ? new Date(takenAt) : undefined,
       notes,
