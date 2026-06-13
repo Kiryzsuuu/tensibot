@@ -148,14 +148,34 @@ export async function sendMessage(
   const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
 
   const [profileDoc, bpSnap, medsSnap, logsSnap, recentMsgsSnap] = await Promise.all([
-    db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get(),
-    db.collection(COLLECTIONS.BP_RECORDS).where('userId', '==', userId).where('isDeleted', '==', false).where('measuredAt', '>=', Timestamp.fromDate(since7Days)).orderBy('measuredAt', 'asc').get(),
-    db.collection(COLLECTIONS.MEDICATIONS).where('userId', '==', userId).where('isActive', '==', true).get(),
-    db.collection(COLLECTIONS.MEDICATION_LOGS).where('userId', '==', userId).where('scheduledTime', '>=', Timestamp.fromDate(todayStart)).where('scheduledTime', '<=', Timestamp.fromDate(todayEnd)).get(),
-    db.collection(COLLECTIONS.CHAT_MESSAGES).where('sessionId', '==', sessionId).orderBy('createdAt', 'desc').limit(10).get(),
+    db.collection(COLLECTIONS.USER_PROFILES).doc(userId).get().catch(() => null),
+    db.collection(COLLECTIONS.BP_RECORDS)
+      .where('userId', '==', userId)
+      .where('isDeleted', '==', false)
+      .where('measuredAt', '>=', Timestamp.fromDate(since7Days))
+      .orderBy('measuredAt', 'asc')
+      .get()
+      .catch(() => ({ docs: [] as FirebaseFirestore.QueryDocumentSnapshot[] })),
+    db.collection(COLLECTIONS.MEDICATIONS)
+      .where('userId', '==', userId)
+      .where('isActive', '==', true)
+      .get()
+      .catch(() => ({ docs: [] as FirebaseFirestore.QueryDocumentSnapshot[] })),
+    db.collection(COLLECTIONS.MEDICATION_LOGS)
+      .where('userId', '==', userId)
+      .where('scheduledTime', '>=', Timestamp.fromDate(todayStart))
+      .where('scheduledTime', '<=', Timestamp.fromDate(todayEnd))
+      .get()
+      .catch(() => ({ docs: [] as FirebaseFirestore.QueryDocumentSnapshot[], size: 0 })),
+    db.collection(COLLECTIONS.CHAT_MESSAGES)
+      .where('sessionId', '==', sessionId)
+      .orderBy('createdAt', 'desc')
+      .limit(10)
+      .get()
+      .catch(() => ({ docs: [] as FirebaseFirestore.QueryDocumentSnapshot[] })),
   ]);
 
-  const profile = profileDoc.exists ? profileDoc.data() : null;
+  const profile = profileDoc?.exists ? profileDoc.data() : null;
   const age = profile?.['dateOfBirth']
     ? Math.floor((Date.now() - new Date(profile['dateOfBirth']).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
     : null;
