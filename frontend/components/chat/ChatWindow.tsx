@@ -124,7 +124,7 @@ export function ChatWindow() {
               <Bot size={18} className="text-white" />
             </div>
             <div>
-              <p className="font-semibold text-sm leading-tight">Asisten Tensi-Bot</p>
+              <p className="font-semibold text-sm leading-tight">Nara</p>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                 <span className="text-xs text-[#AED6F1]">Online</span>
@@ -189,7 +189,7 @@ export function ChatWindow() {
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
               <Bot size={28} className="text-[#2E86C1]" />
             </div>
-            <p className="text-[#1A2A3A] font-semibold mb-1">Halo! Saya Tensi-Bot</p>
+            <p className="text-[#1A2A3A] font-semibold mb-1">Halo! Saya Nara 👋</p>
             <p className="text-[#5D8AA8] text-sm mb-5 max-w-xs">
               Tanyakan apa saja tentang hipertensi, tekanan darah, atau kesehatan Anda.
             </p>
