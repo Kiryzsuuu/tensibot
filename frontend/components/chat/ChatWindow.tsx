@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { Send, Bot, Plus, Lightbulb, Activity, Pill } from 'lucide-react';
+import Image from 'next/image';
+import { Send, Plus, Lightbulb, Activity, Pill } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDateWIB } from '@/lib/utils';
 import { useChat } from '@/hooks/useChat';
@@ -26,8 +27,8 @@ function MessageBubble({ message, userInitial }: { message: ChatMessage; userIni
   return (
     <div className={cn('flex gap-2 mb-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-[#2E86C1] flex items-center justify-center shrink-0 mt-1 shadow-sm">
-          <Bot size={15} className="text-white" />
+        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-1 shadow-sm">
+          <Image src="/nara-avatar.png" alt="Nara" width={32} height={32} className="w-full h-full object-cover" />
         </div>
       )}
 
@@ -59,8 +60,8 @@ function MessageBubble({ message, userInitial }: { message: ChatMessage; userIni
 function TypingIndicator() {
   return (
     <div className="flex gap-2 mb-3">
-      <div className="w-8 h-8 rounded-full bg-[#2E86C1] flex items-center justify-center shrink-0 mt-1">
-        <Bot size={15} className="text-white" />
+      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-1">
+        <Image src="/nara-avatar.png" alt="Nara" width={32} height={32} className="w-full h-full object-cover" />
       </div>
       <div className="bg-white border border-[#E8F4FD] rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
         <div className="flex items-center gap-1.5">
@@ -120,8 +121,8 @@ export function ChatWindow() {
         {/* Main header row */}
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#2E86C1] flex items-center justify-center shadow">
-              <Bot size={18} className="text-white" />
+            <div className="w-9 h-9 rounded-full overflow-hidden shadow ring-2 ring-white/20">
+              <Image src="/nara-avatar.png" alt="Nara" width={36} height={36} className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="font-semibold text-sm leading-tight">Nara</p>
@@ -186,8 +187,8 @@ export function ChatWindow() {
 
         {messages.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
-              <Bot size={28} className="text-[#2E86C1]" />
+            <div className="w-16 h-16 rounded-full overflow-hidden mb-4 shadow-md ring-4 ring-[#2E86C1]/20">
+              <Image src="/nara-avatar.png" alt="Nara" width={64} height={64} className="w-full h-full object-cover" />
             </div>
             <p className="text-[#1A2A3A] font-semibold mb-1">Halo! Saya Nara 👋</p>
             <p className="text-[#5D8AA8] text-sm mb-5 max-w-xs">
