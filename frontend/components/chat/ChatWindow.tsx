@@ -1,11 +1,14 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { Send, Bot, Plus, Lightbulb } from 'lucide-react';
+import { Send, Bot, Plus, Lightbulb, Activity, Pill } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDateWIB } from '@/lib/utils';
 import { useChat } from '@/hooks/useChat';
 import { useAuthStore } from '@/store/authStore';
+import { useBPRecords } from '@/hooks/useBPRecords';
+import { useTodayMedications } from '@/hooks/useMedications';
+import { getBPCategoryDef } from '@/constants/bp-categories';
 import type { ChatMessage } from '@/types';
 
 const QUICK_REPLIES = [
@@ -18,18 +21,17 @@ const QUICK_REPLIES = [
 ];
 
 function MessageBubble({ message, userInitial }: { message: ChatMessage; userInitial: string }) {
-  const isUser = message.role === 'USER';
+  const isUser = message.role?.toUpperCase() === 'USER';
 
   return (
     <div className={cn('flex gap-2 mb-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
-      {/* Bot avatar */}
       {!isUser && (
         <div className="w-8 h-8 rounded-full bg-[#2E86C1] flex items-center justify-center shrink-0 mt-1 shadow-sm">
           <Bot size={15} className="text-white" />
         </div>
       )}
 
-      <div className={cn('flex flex-col gap-0.5 max-w-[72%] sm:max-w-[65%]', isUser ? 'items-end' : 'items-start')}>
+      <div className={cn('flex flex-col gap-0.5 max-w-[75%] sm:max-w-[65%]', isUser ? 'items-end' : 'items-start')}>
         <div className={cn(
           'px-3.5 py-2.5 text-sm leading-relaxed',
           isUser
@@ -37,10 +39,7 @@ function MessageBubble({ message, userInitial }: { message: ChatMessage; userIni
             : 'bg-white text-[#1A2A3A] rounded-2xl rounded-tl-sm shadow-sm border border-[#E8F4FD]'
         )}>
           {message.content.split('\n').map((line, i, arr) => (
-            <span key={i}>
-              {line}
-              {i < arr.length - 1 && <br />}
-            </span>
+            <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
         </div>
         <span className="text-[10px] text-[#AED6F1] px-1">
@@ -48,7 +47,6 @@ function MessageBubble({ message, userInitial }: { message: ChatMessage; userIni
         </span>
       </div>
 
-      {/* User avatar */}
       {isUser && (
         <div className="w-8 h-8 rounded-full bg-[#154360] flex items-center justify-center shrink-0 mt-1 shadow-sm text-white text-xs font-bold">
           {userInitial}
@@ -78,11 +76,16 @@ function TypingIndicator() {
 export function ChatWindow() {
   const { messages, isTyping, isLoading, error, sendMessage, startNewSession } = useChat();
   const { user } = useAuthStore();
+  const { data: bpPaginated } = useBPRecords(1, 1);
+  const { data: todayMeds = [] } = useTodayMedications();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const userInitial = user?.fullName?.charAt(0).toUpperCase() ?? 'A';
+  const lastBP = bpPaginated?.items?.[0];
+  const catDef = lastBP ? getBPCategoryDef(lastBP.category) : null;
+  const takenMeds = todayMeds.filter(m => m.todayLogs.some(l => l.status === 'TAKEN')).length;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,32 +113,62 @@ export function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#F0F4F8]">
+    <div className="flex flex-col h-full bg-[#EEF2F7]">
 
-      {/* ── Header (WhatsApp-style) ─────────────────────────────── */}
-      <div className="bg-[#154360] text-white px-4 py-3 flex items-center justify-between shrink-0 shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#2E86C1] flex items-center justify-center shadow">
-            <Bot size={18} className="text-white" />
-          </div>
-          <div>
-            <p className="font-semibold text-sm">Asisten Tensi-Bot</p>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-xs text-[#AED6F1]">Online</span>
+      {/* ── Header ─────────────────────────────────────────────── */}
+      <div className="bg-[#154360] text-white shrink-0 shadow-md">
+        {/* Main header row */}
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#2E86C1] flex items-center justify-center shadow">
+              <Bot size={18} className="text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm leading-tight">Asisten Tensi-Bot</p>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-xs text-[#AED6F1]">Online</span>
+              </div>
             </div>
           </div>
+          <button
+            onClick={() => void startNewSession()}
+            className="flex items-center gap-1.5 text-xs text-[#AED6F1] hover:text-white font-medium bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Plus size={13} />
+            Sesi Baru
+          </button>
         </div>
-        <button
-          onClick={() => void startNewSession()}
-          className="flex items-center gap-1.5 text-xs text-[#AED6F1] hover:text-white font-medium transition-colors bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg"
-        >
-          <Plus size={13} />
-          Sesi Baru
-        </button>
+
+        {/* Health chips — compact info row */}
+        {(lastBP || todayMeds.length > 0) && (
+          <div className="px-4 pb-2.5 flex items-center gap-2 overflow-x-auto">
+            {lastBP && (
+              <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1 shrink-0">
+                <Activity size={11} className="text-[#AED6F1]" />
+                <span className="text-xs text-white font-mono font-semibold">
+                  {lastBP.systolic}/{lastBP.diastolic}
+                </span>
+                {catDef && (
+                  <span className="text-[10px] font-medium" style={{ color: catDef.textColor }}>
+                    {catDef.label}
+                  </span>
+                )}
+              </div>
+            )}
+            {todayMeds.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1 shrink-0">
+                <Pill size={11} className="text-[#AED6F1]" />
+                <span className="text-xs text-white">
+                  {takenMeds}/{todayMeds.length} obat diminum
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── Disclaimer banner ──────────────────────────────────── */}
+      {/* ── Disclaimer ─────────────────────────────────────────── */}
       <div className="bg-amber-50 border-b border-amber-100 px-4 py-2 flex items-center gap-2 shrink-0">
         <Lightbulb size={13} className="text-amber-500 shrink-0" />
         <p className="text-xs text-amber-700">
@@ -152,7 +185,7 @@ export function ChatWindow() {
         )}
 
         {messages.length === 0 && !isLoading && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
               <Bot size={28} className="text-[#2E86C1]" />
             </div>
@@ -201,7 +234,7 @@ export function ChatWindow() {
         </div>
       )}
 
-      {/* ── Input bar (WhatsApp-style) ──────────────────────────── */}
+      {/* ── Input bar ──────────────────────────────────────────── */}
       <div className="bg-white border-t border-[#E8F4FD] px-3 py-3 shrink-0">
         <div className="flex items-end gap-2">
           <div className="flex-1 bg-[#F4F8FC] border border-[#D6E8F5] rounded-2xl px-4 py-2.5 focus-within:border-[#2E86C1] focus-within:ring-2 focus-within:ring-[#2E86C1]/20 transition-all">
