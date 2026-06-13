@@ -94,8 +94,7 @@ export default async function LandingPage() {
 
         <div className="relative max-w-6xl mx-auto">
           <div className="max-w-3xl mx-auto text-center">
-            <span className="inline-flex items-center gap-1.5 bg-[#2E86C1]/10 text-[#2E86C1] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6 border border-[#2E86C1]/20">
-              <Heart size={11} className="fill-current" />
+            <span className="inline-flex items-center bg-[#2E86C1]/10 text-[#2E86C1] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6 border border-[#2E86C1]/20">
               {hero.badge}
             </span>
 
@@ -194,8 +193,7 @@ export default async function LandingPage() {
       <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-gradient-to-br from-[#0F2D45] via-[#154360] to-[#2E86C1]">
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         <div className="relative max-w-3xl mx-auto text-center">
-          <span className="inline-flex items-center gap-1.5 bg-white/10 text-[#AED6F1] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6 border border-white/20">
-            <Heart size={11} className="fill-current text-red-400" />
+          <span className="inline-flex items-center bg-white/10 text-[#AED6F1] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6 border border-white/20">
             Gratis, Mudah, dan Terpercaya
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight tracking-tight">{cta.title}</h2>

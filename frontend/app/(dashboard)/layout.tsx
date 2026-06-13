@@ -17,7 +17,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (_hasHydrated && !token) {
-      router.replace('/login');
+      router.replace('/');
     }
   }, [token, _hasHydrated, router]);
 
