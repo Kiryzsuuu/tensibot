@@ -46,4 +46,5 @@ export const COLLECTIONS = {
   HEALTH_GOALS: 'healthGoals',
   NOTIFICATIONS: 'notifications',
   ADMIN_LOGS: 'adminLogs',
+  HEROES: 'heroes',
 } as const;

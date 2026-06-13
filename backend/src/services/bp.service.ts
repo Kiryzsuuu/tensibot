@@ -14,7 +14,7 @@ export interface CreateBPInput {
 }
 
 export interface BPStats {
-  count: number;
+  totalRecords: number;
   avgSystolic: number;
   avgDiastolic: number;
   avgPulse: number | null;
@@ -26,7 +26,7 @@ export interface BPStats {
 }
 
 export interface PaginatedBPRecords {
-  records: BloodPressureRecord[];
+  items: BloodPressureRecord[];
   total: number;
   page: number;
   limit: number;
@@ -87,9 +87,9 @@ export async function getRecords(options: {
   });
 
   const total = all.length;
-  const records = all.slice((page - 1) * limit, page * limit);
+  const items = all.slice((page - 1) * limit, page * limit);
 
-  return { records, total, page, limit, totalPages: Math.ceil(total / limit) };
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getStats(userId: string, days = 30): Promise<BPStats> {
@@ -107,7 +107,7 @@ export async function getStats(userId: string, days = 30): Promise<BPStats> {
 
   if (records.length === 0) {
     return {
-      count: 0, avgSystolic: 0, avgDiastolic: 0, avgPulse: null,
+      totalRecords: 0, avgSystolic: 0, avgDiastolic: 0, avgPulse: null,
       minSystolic: 0, maxSystolic: 0, minDiastolic: 0, maxDiastolic: 0,
       latestCategory: null,
     };
@@ -118,7 +118,7 @@ export async function getStats(userId: string, days = 30): Promise<BPStats> {
   const pulses = records.filter(r => r.pulse !== null && r.pulse !== undefined).map(r => r.pulse as number);
 
   return {
-    count: records.length,
+    totalRecords: records.length,
     avgSystolic: Math.round(systolics.reduce((a, b) => a + b, 0) / records.length),
     avgDiastolic: Math.round(diastolics.reduce((a, b) => a + b, 0) / records.length),
     avgPulse: pulses.length > 0 ? Math.round(pulses.reduce((a, b) => a + b, 0) / pulses.length) : null,

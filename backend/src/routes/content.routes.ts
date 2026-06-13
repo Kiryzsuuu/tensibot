@@ -41,6 +41,16 @@ contentRouter.get('/', asyncHandler(async (req: Request, res: Response) => {
   res.json({ success: true, data: { articles, total, page, limit, totalPages: Math.ceil(total / limit) } });
 }));
 
+contentRouter.get('/admin/all',
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'SUPER_ADMIN']),
+  asyncHandler(async (_req: Request, res: Response) => {
+    const snap = await db.collection(COLLECTIONS.CONTENT_ARTICLES).orderBy('createdAt', 'desc').get();
+    const articles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    res.json({ success: true, data: { articles, total: articles.length } });
+  }),
+);
+
 contentRouter.get('/:slug', asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const snap = await db.collection(COLLECTIONS.CONTENT_ARTICLES)
     .where('slug', '==', req.params['slug'])
@@ -100,15 +110,5 @@ contentRouter.patch('/:id',
     await db.collection(COLLECTIONS.CONTENT_ARTICLES).doc(id).update(updateData);
     const updated = await db.collection(COLLECTIONS.CONTENT_ARTICLES).doc(id).get();
     res.json({ success: true, data: { id: updated.id, ...updated.data() }, message: 'Artikel berhasil diperbarui' });
-  }),
-);
-
-contentRouter.get('/admin/all',
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'SUPER_ADMIN']),
-  asyncHandler(async (_req: Request, res: Response) => {
-    const snap = await db.collection(COLLECTIONS.CONTENT_ARTICLES).orderBy('createdAt', 'desc').get();
-    const articles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    res.json({ success: true, data: { articles, total: articles.length } });
   }),
 );

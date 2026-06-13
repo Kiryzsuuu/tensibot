@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { useMedications, useLogMedication, useCreateMedication } from '@/hooks/useMedications';
+import { useTodayMedications, useLogMedication, useCreateMedication } from '@/hooks/useMedications';
 import { formatDateWIB } from '@/lib/utils';
 import type { MedicationWithStatus } from '@/types';
 import { cn } from '@/lib/utils';
@@ -239,7 +239,7 @@ function MedCard({ med }: { med: MedicationWithStatus }) {
 
 export default function ObatPage() {
   const [showModal, setShowModal] = useState(false);
-  const { data: medications = [], isLoading } = useMedications();
+  const { data: medications = [], isLoading } = useTodayMedications();
   const activeMeds = medications.filter((m) => m.isActive);
   const inactiveMeds = medications.filter((m) => !m.isActive);
 

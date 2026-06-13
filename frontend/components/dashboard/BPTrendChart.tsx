@@ -55,7 +55,8 @@ const CustomTooltip = ({
 };
 
 export function BPTrendChart({ data }: BPTrendChartProps) {
-  const chartData: ChartDataPoint[] = [...(data ?? [])]
+  const safeData: BPRecord[] = Array.isArray(data) ? data : [];
+  const chartData: ChartDataPoint[] = [...safeData]
     .sort((a, b) => new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime())
     .map((r) => ({
       date: formatDateWIB(r.measuredAt, {

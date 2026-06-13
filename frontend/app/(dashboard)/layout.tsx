@@ -13,15 +13,15 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
-  const { token } = useAuthStore();
+  const { token, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (!token) {
+    if (_hasHydrated && !token) {
       router.replace('/login');
     }
-  }, [token, router]);
+  }, [token, _hasHydrated, router]);
 
-  if (!token) {
+  if (!_hasHydrated || !token) {
     return (
       <div className="min-h-screen bg-[#EAF4FB] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#2E86C1] border-t-transparent rounded-full animate-spin" />

@@ -52,7 +52,7 @@ export const listUsers = asyncHandler(async (req: Request, res: Response, next: 
       const profile = profileDoc.exists ? profileDoc.data() : null;
       const { passwordHash, ...safeUser } = user as Record<string, unknown> & { passwordHash?: unknown };
       void passwordHash;
-      return { ...safeUser, profile: profile ? { fullName: profile['fullName'], phone: profile['phone'] } : null };
+      return { ...safeUser, profile: profile ? { fullName: profile['fullName'], phoneNumber: profile['phoneNumber'] } : null };
     }),
   );
 

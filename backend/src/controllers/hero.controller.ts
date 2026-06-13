@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { Request, Response, NextFunction } from 'express';
 import { asyncHandler, AppError } from '../app';
-import { db } from '../lib/firebase';
+import { db, COLLECTIONS } from '../lib/firebase';
 
-const HEROES = 'heroes';
+const HEROES = COLLECTIONS.HEROES;
 
 export const getActiveHeroes = asyncHandler(async (_req: Request, res: Response) => {
   const snap = await db.collection(HEROES)

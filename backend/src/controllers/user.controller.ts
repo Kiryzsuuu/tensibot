@@ -27,15 +27,14 @@ export const getProfile = asyncHandler(async (req: Request, res: Response, next:
 export const updateProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) return next(new AppError('Unauthorized', 401, 'UNAUTHORIZED'));
 
-  const {
-    fullName, dateOfBirth, weightKg, heightCm, phoneNumber,
-    diagnosis, diagnosisYear, allergies, emergencyContact, address,
-  } = req.body as {
+  const body = req.body as {
     fullName?: string;
     dateOfBirth?: string;
-    weightKg?: number;
-    heightCm?: number;
-    phoneNumber?: string;
+    // accept both old and new field names
+    weightKg?: number; weight?: number;
+    heightCm?: number; height?: number;
+    phoneNumber?: string; phone?: string;
+    gender?: string;
     diagnosis?: string;
     diagnosisYear?: number;
     allergies?: string;
@@ -44,16 +43,21 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response, ne
   };
 
   const updateData: Record<string, unknown> = {};
-  if (fullName !== undefined) updateData['fullName'] = fullName;
-  if (dateOfBirth !== undefined) updateData['dateOfBirth'] = new Date(dateOfBirth);
-  if (weightKg !== undefined) updateData['weightKg'] = weightKg;
-  if (heightCm !== undefined) updateData['heightCm'] = heightCm;
-  if (phoneNumber !== undefined) updateData['phoneNumber'] = phoneNumber;
-  if (diagnosis !== undefined) updateData['diagnosis'] = diagnosis;
-  if (diagnosisYear !== undefined) updateData['diagnosisYear'] = diagnosisYear;
-  if (allergies !== undefined) updateData['allergies'] = allergies;
-  if (emergencyContact !== undefined) updateData['emergencyContact'] = emergencyContact;
-  if (address !== undefined) updateData['address'] = address;
+  if (body.fullName !== undefined) updateData['fullName'] = body.fullName;
+  if (body.dateOfBirth !== undefined) updateData['dateOfBirth'] = new Date(body.dateOfBirth);
+  if (body.gender !== undefined) updateData['gender'] = body.gender;
+  // normalise weight/height/phone — accept both naming conventions
+  const weight = body.weightKg ?? body.weight;
+  const height = body.heightCm ?? body.height;
+  const phone = body.phoneNumber ?? body.phone;
+  if (weight !== undefined) updateData['weightKg'] = weight;
+  if (height !== undefined) updateData['heightCm'] = height;
+  if (phone !== undefined) updateData['phoneNumber'] = phone;
+  if (body.diagnosis !== undefined) updateData['diagnosis'] = body.diagnosis;
+  if (body.diagnosisYear !== undefined) updateData['diagnosisYear'] = body.diagnosisYear;
+  if (body.allergies !== undefined) updateData['allergies'] = body.allergies;
+  if (body.emergencyContact !== undefined) updateData['emergencyContact'] = body.emergencyContact;
+  if (body.address !== undefined) updateData['address'] = body.address;
 
   const profile = await updateUserProfile(req.user.userId, updateData);
 
@@ -91,7 +95,7 @@ export const getDashboard = asyncHandler(async (req: Request, res: Response, nex
     data: {
       profile: { fullName: profile?.fullName ?? null },
       bpStats,
-      latestBPRecords: latestBPRecords.records,
+      latestBPRecords: latestBPRecords.items,
       trendData,
       medication: {
         activeCount: medsSnapshot.size,

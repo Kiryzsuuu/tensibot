@@ -130,7 +130,10 @@ export const getTodaySchedule = asyncHandler(
     if (!req.user) return next(new AppError('Unauthorized', 401, 'UNAUTHORIZED'));
 
     const schedule = await MedService.getTodaySchedule(req.user.userId);
-    const compliance = await MedService.getMedicationComplianceToday(req.user.userId);
+    const total = schedule.length;
+    const taken = schedule.filter(s => s.log?.status === 'TAKEN').length;
+    const skipped = schedule.filter(s => s.log?.status === 'SKIPPED').length;
+    const compliance = { total, taken, skipped, pending: total - taken - skipped };
 
     res.json({
       success: true,

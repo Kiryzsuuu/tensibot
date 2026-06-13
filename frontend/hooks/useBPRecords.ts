@@ -22,8 +22,15 @@ export function useBPRecords7Days() {
   return useQuery({
     queryKey: [QUERY_KEY, '7days'],
     queryFn: async () => {
-      const res = await api.get<ApiResponse<BPRecord[]>>('/blood-pressure?days=7&limit=7');
-      return res.data.data ?? [];
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+      const res = await api.get<ApiResponse<PaginatedResponse<BPRecord>>>(
+        `/blood-pressure?limit=7&startDate=${startDate.toISOString()}`
+      );
+      const data = res.data.data;
+      // Return array whether backend gives PaginatedResponse or plain array
+      if (Array.isArray(data)) return data as BPRecord[];
+      return (data as PaginatedResponse<BPRecord>)?.items ?? [];
     },
   });
 }
