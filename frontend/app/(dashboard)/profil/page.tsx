@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   User,
   Mail,
@@ -83,6 +83,7 @@ export default function ProfilPage() {
     }
   }, [profile, user, reset]);
 
+  const queryClient = useQueryClient();
   const { mutateAsync: updateProfile, isPending } = useMutation({
     mutationFn: async (data: ProfileForm) => {
       // Strip empty strings and NaN so backend validation doesn't reject them
@@ -96,6 +97,9 @@ export default function ProfilPage() {
       if (data.diagnosis) payload['diagnosis'] = data.diagnosis;
       const res = await api.patch<ApiResponse<UserProfile>>('/users/profile', payload);
       return res.data.data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['profile'] });
     },
   });
 
