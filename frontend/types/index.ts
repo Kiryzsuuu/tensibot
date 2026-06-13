@@ -15,9 +15,9 @@ export interface UserProfile {
   userId: string;
   dateOfBirth?: string;
   gender?: 'MALE' | 'FEMALE';
-  weight?: number;
-  height?: number;
-  phone?: string;
+  weightKg?: number;
+  heightCm?: number;
+  phoneNumber?: string;
   diagnosis?: string;
   avatarUrl?: string;
 }

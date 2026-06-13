@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,11 +22,11 @@ import type { UserProfile, ApiResponse } from '@/types';
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Minimal 2 karakter'),
-  phone: z.string().optional(),
+  phoneNumber: z.string().optional(),
   dateOfBirth: z.string().optional(),
   gender: z.enum(['MALE', 'FEMALE']).optional(),
-  weight: z.number().min(20).max(300).optional(),
-  height: z.number().min(50).max(300).optional(),
+  weightKg: z.number().min(20).max(300).optional(),
+  heightCm: z.number().min(50).max(300).optional(),
   diagnosis: z.string().optional(),
 });
 
@@ -40,27 +40,37 @@ export default function ProfilPage() {
   const { data: profile } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      const res = await api.get<ApiResponse<UserProfile>>('/users/profile');
-      return res.data.data;
+      const res = await api.get<ApiResponse<Record<string, unknown>>>('/users/profile');
+      const raw = res.data.data;
+      return (raw?.['profile'] ?? raw) as UserProfile | undefined;
     },
   });
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isDirty },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       fullName: user?.fullName ?? '',
-      phone: profile?.phone ?? '',
-      dateOfBirth: profile?.dateOfBirth?.split('T')[0] ?? '',
-      gender: profile?.gender,
-      weight: profile?.weight,
-      height: profile?.height,
-      diagnosis: profile?.diagnosis ?? '',
     },
   });
+
+  useEffect(() => {
+    if (profile || user) {
+      reset({
+        fullName: user?.fullName ?? '',
+        phoneNumber: profile?.phoneNumber ?? '',
+        dateOfBirth: profile?.dateOfBirth?.split('T')[0] ?? '',
+        gender: profile?.gender,
+        weightKg: profile?.weightKg,
+        heightCm: profile?.heightCm,
+        diagnosis: profile?.diagnosis ?? '',
+      });
+    }
+  }, [profile, user, reset]);
 
   const { mutateAsync: updateProfile, isPending } = useMutation({
     mutationFn: async (data: ProfileForm) => {
@@ -120,13 +130,35 @@ export default function ProfilPage() {
             {user?.role === 'PASIEN' ? 'Pasien' : user?.role}
           </span>
         </div>
-        <button
-          onClick={() => setEditing(!editing)}
-          className="btn-secondary flex items-center gap-1.5 text-sm"
-        >
-          <Edit3 size={14} />
-          {editing ? 'Batal' : 'Edit'}
-        </button>
+        {editing ? (
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(false);
+              reset({
+                fullName: user?.fullName ?? '',
+                phoneNumber: profile?.phoneNumber ?? '',
+                dateOfBirth: profile?.dateOfBirth?.split('T')[0] ?? '',
+                gender: profile?.gender,
+                weightKg: profile?.weightKg,
+                heightCm: profile?.heightCm,
+                diagnosis: profile?.diagnosis ?? '',
+              });
+            }}
+            className="btn-secondary flex items-center gap-1.5 text-sm"
+          >
+            Batalkan Edit
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="btn-secondary flex items-center gap-1.5 text-sm"
+          >
+            <Edit3 size={14} />
+            Edit Profil
+          </button>
+        )}
       </div>
 
       {/* Profile form */}
@@ -161,7 +193,7 @@ export default function ProfilPage() {
               </label>
               <input
                 type="tel"
-                {...register('phone')}
+                {...register('phoneNumber')}
                 disabled={!editing}
                 placeholder="+62812..."
                 className={cn('input-field', !editing && 'bg-[#F4F8FC] cursor-default')}
@@ -204,7 +236,7 @@ export default function ProfilPage() {
               </label>
               <input
                 type="number"
-                {...register('weight', { valueAsNumber: true })}
+                {...register('weightKg', { valueAsNumber: true })}
                 disabled={!editing}
                 placeholder="70"
                 className={cn('input-field', !editing && 'bg-[#F4F8FC] cursor-default')}
@@ -218,7 +250,7 @@ export default function ProfilPage() {
               </label>
               <input
                 type="number"
-                {...register('height', { valueAsNumber: true })}
+                {...register('heightCm', { valueAsNumber: true })}
                 disabled={!editing}
                 placeholder="170"
                 className={cn('input-field', !editing && 'bg-[#F4F8FC] cursor-default')}

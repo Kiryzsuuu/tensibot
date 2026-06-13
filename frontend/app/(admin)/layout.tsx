@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-[#F4F8FC]">
       {/* Admin top bar */}
       <div className="bg-[#154360] text-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 bg-[#2E86C1] rounded-lg flex items-center justify-center shrink-0">
@@ -80,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-8">
         {children}
       </main>
     </div>
