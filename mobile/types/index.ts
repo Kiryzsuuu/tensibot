@@ -49,6 +49,8 @@ export interface BPStats {
   avgDiastolic: number;
   minSystolic: number;
   maxSystolic: number;
+  minDiastolic: number;
+  maxDiastolic: number;
   avgPulse?: number;
   latestCategory?: BPCategory;
 }

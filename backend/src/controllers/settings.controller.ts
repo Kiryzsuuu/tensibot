@@ -43,6 +43,44 @@ export const getSettings = asyncHandler(async (_req: Request, res: Response) => 
   res.json({ success: true, data });
 });
 
+// ─── Bot Settings ─────────────────────────────────────────────────────────────
+
+const BOT_DOC = 'botSettings';
+
+const DEFAULT_BOT = {
+  botName: 'Nara',
+  botDescription: 'Asisten Kesehatan AI',
+  avatarBase64: null as string | null,
+};
+
+export const getBotSettings = asyncHandler(async (_req: Request, res: Response) => {
+  const doc = await db.collection(SETTINGS_COLLECTION).doc(BOT_DOC).get();
+  const data = doc.exists ? { ...DEFAULT_BOT, ...doc.data() } : DEFAULT_BOT;
+  res.json({ success: true, data });
+});
+
+export const updateBotSettings = asyncHandler(async (req: Request, res: Response) => {
+  const { botName, botDescription, avatarBase64 } = req.body as {
+    botName?: string;
+    botDescription?: string;
+    avatarBase64?: string | null;
+  };
+  const ref = db.collection(SETTINGS_COLLECTION).doc(BOT_DOC);
+  const update: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+  if (botName !== undefined) update['botName'] = botName;
+  if (botDescription !== undefined) update['botDescription'] = botDescription;
+  if (avatarBase64 !== undefined) update['avatarBase64'] = avatarBase64;
+
+  const doc = await ref.get();
+  if (doc.exists) {
+    await ref.update(update);
+  } else {
+    await ref.set({ ...DEFAULT_BOT, ...update });
+  }
+  const updated = await ref.get();
+  res.json({ success: true, data: updated.data(), message: 'Pengaturan bot berhasil disimpan' });
+});
+
 export const updateSettings = asyncHandler(async (req: Request, res: Response) => {
   const updates = req.body as Partial<typeof DEFAULT_SETTINGS>;
   const ref = db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC);

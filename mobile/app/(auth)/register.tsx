@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
@@ -55,7 +56,7 @@ export default function RegisterScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.logo}>
-            <Text style={styles.logoIcon}>〜</Text>
+            <Ionicons name="heart-circle" size={28} color="#fff" />
           </View>
           <Text style={styles.appName}>Daftar ke Tensi-Bot</Text>
           <Text style={styles.tagline}>Mulai pantau kesehatan Anda hari ini</Text>
@@ -99,7 +100,7 @@ export default function RegisterScreen() {
                 onChangeText={setPassword}
               />
               <TouchableOpacity onPress={() => setShowPass((v) => !v)} style={styles.eyeBtn}>
-                <Text>{showPass ? '🙈' : '👁'}</Text>
+                <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
               </TouchableOpacity>
             </View>
           </View>
@@ -120,8 +121,8 @@ export default function RegisterScreen() {
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Buat Akun Gratis</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Text style={styles.backBtnText}>Kembali ke Login</Text>
+          <TouchableOpacity onPress={() => router.push('/landing')} style={styles.backBtn}>
+            <Text style={styles.backBtnText}>Kembali ke Beranda</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

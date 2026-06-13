@@ -1,6 +1,7 @@
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import HeroSlider from '@/components/HeroSlider';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
@@ -123,6 +124,9 @@ export default function DashboardScreen() {
           <Text style={styles.statSub}>{takenMeds}/{todayMeds.length} obat hari ini</Text>
         </View>
       </View>
+
+      {/* Hero Slider */}
+      <HeroSlider />
 
       {/* Chat CTA */}
       <TouchableOpacity style={styles.chatCta} onPress={() => router.push('/(tabs)/chat')}>

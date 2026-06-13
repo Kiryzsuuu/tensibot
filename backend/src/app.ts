@@ -120,6 +120,10 @@ type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise
 
 export function asyncHandler(fn: AsyncHandler) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    fn(req, res, next).catch(next);
+    fn(req, res, next).catch((err: unknown) => {
+      // Log detail error to console for debugging
+      console.error(`[asyncHandler] ${req.method} ${req.path} →`, err);
+      next(err);
+    });
   };
 }

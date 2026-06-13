@@ -4,7 +4,7 @@ import {
   StyleSheet, Alert, ActivityIndicator, RefreshControl, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
@@ -29,8 +29,11 @@ export default function ProfilScreen() {
   const { data: profile, isLoading, refetch } = useQuery<UserProfile>({
     queryKey: ['profile'],
     queryFn: async () => {
-      const res = await api.get<ApiResponse<UserProfile>>('/users/profile');
-      return res.data.data!;
+      const res = await api.get<ApiResponse<{ profile: UserProfile } & Record<string, unknown>>>('/users/profile');
+      const data = res.data.data!;
+      // Backend returns { ...user, profile: { phoneNumber, weightKg, ... } }
+      // Merge top-level and nested profile fields
+      return { ...data, ...(data.profile ?? {}) } as UserProfile;
     },
   });
 
@@ -84,7 +87,7 @@ export default function ProfilScreen() {
   const onLogout = () => {
     Alert.alert('Keluar', 'Yakin ingin keluar dari aplikasi?', [
       { text: 'Batal', style: 'cancel' },
-      { text: 'Keluar', style: 'destructive', onPress: async () => { await clearAuth(); router.replace('/'); } },
+      { text: 'Keluar', style: 'destructive', onPress: async () => { await clearAuth(); router.replace('/landing'); } },
     ]);
   };
 
@@ -161,13 +164,14 @@ export default function ProfilScreen() {
                   display={Platform.OS === 'android' ? 'calendar' : 'spinner'}
                   maximumDate={new Date()}
                   minimumDate={new Date(1900, 0, 1)}
-                  onChange={(event: DateTimePickerEvent, selected?: Date) => {
+                  onValueChange={(date?: Date) => {
                     setShowDatePicker(Platform.OS === 'ios');
-                    if (event.type === 'set' && selected) {
-                      setDobDate(selected);
-                      setDateOfBirth(selected.toISOString().split('T')[0] ?? '');
+                    if (date) {
+                      setDobDate(date);
+                      setDateOfBirth(date.toISOString().split('T')[0] ?? '');
                     }
                   }}
+                  onDismiss={() => setShowDatePicker(false)}
                 />
               )}
             </>

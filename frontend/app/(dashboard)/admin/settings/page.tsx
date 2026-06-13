@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, Save, Plus, Trash2, CheckCircle, RefreshCw } from 'lucide-react';
+import { Settings, Save, Plus, Trash2, CheckCircle, RefreshCw, Bot, Image } from 'lucide-react';
 import api from '@/lib/api';
 import type { ApiResponse } from '@/types';
 
@@ -259,6 +259,133 @@ export default function AdminSettingsPage() {
           )}
         </button>
       </form>
+
+      <BotSettingsSection />
+    </div>
+  );
+}
+
+// ─── Bot Settings Section ─────────────────────────────────────────────────────
+
+interface BotSettingsData {
+  botName: string;
+  botDescription: string;
+  avatarBase64: string | null;
+}
+
+function BotSettingsSection() {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [botName, setBotName] = useState('');
+  const [botDescription, setBotDescription] = useState('');
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const { data } = useQuery<BotSettingsData>({
+    queryKey: ['bot-settings'],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<BotSettingsData>>('/settings/bot');
+      return res.data.data!;
+    },
+  });
+
+  useEffect(() => {
+    if (data) {
+      setBotName(data.botName ?? 'Nara');
+      setBotDescription(data.botDescription ?? 'Asisten Kesehatan AI');
+      setAvatarBase64(data.avatarBase64 ?? null);
+    }
+  }, [data]);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      await api.patch('/settings/bot', { botName, botDescription, avatarBase64 });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['bot-settings'] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    },
+  });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setAvatarBase64(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#D6EAF8] p-6 mt-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[#F4F8FC]">
+        <Bot size={18} className="text-[#2E86C1]" />
+        <h2 className="text-sm font-bold text-[#1A2A3A]">Pengaturan Asisten AI (Chatbot)</h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {/* Avatar upload */}
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="w-24 h-24 rounded-full border-2 border-dashed border-[#B2D4EC] flex items-center justify-center cursor-pointer hover:border-[#2E86C1] transition-colors overflow-hidden bg-[#EAF4FB]"
+            onClick={() => fileRef.current?.click()}
+          >
+            {avatarBase64 ? (
+              <img src={avatarBase64} alt="Bot avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center gap-1">
+                <Image size={22} className="text-[#B2D4EC]" />
+                <span className="text-xs text-[#AED6F1]">Foto</span>
+              </div>
+            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+          {avatarBase64 && (
+            <button type="button" onClick={() => setAvatarBase64(null)} className="text-xs text-red-500 hover:underline">
+              Hapus foto
+            </button>
+          )}
+          <p className="text-[10px] text-[#AED6F1] text-center">Foto profil chatbot (PNG/JPG)</p>
+        </div>
+
+        {/* Name & description */}
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-[#1A2A3A] mb-1.5">Nama Bot</label>
+            <input
+              type="text"
+              value={botName}
+              onChange={(e) => setBotName(e.target.value)}
+              placeholder="Nara"
+              className={INPUT}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[#1A2A3A] mb-1.5">Deskripsi</label>
+            <input
+              type="text"
+              value={botDescription}
+              onChange={(e) => setBotDescription(e.target.value)}
+              placeholder="Asisten Kesehatan AI"
+              className={INPUT}
+            />
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={() => mutate()}
+        disabled={isPending}
+        className="mt-5 flex items-center gap-2 bg-[#2E86C1] hover:bg-[#2471A3] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors disabled:opacity-60"
+      >
+        {isPending ? (
+          <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Menyimpan...</>
+        ) : saved ? (
+          <><CheckCircle size={15} /> Tersimpan!</>
+        ) : (
+          <><Save size={15} /> Simpan Pengaturan Bot</>
+        )}
+      </button>
     </div>
   );
 }

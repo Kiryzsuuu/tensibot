@@ -1,16 +1,46 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import Image from 'next/image';
 import { Send, Plus, Lightbulb, Activity, Pill, MessageSquare, Menu, X, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDateWIB } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
 import { useChat } from '@/hooks/useChat';
 import { useAuthStore } from '@/store/authStore';
 import { useBPRecords } from '@/hooks/useBPRecords';
 import { useTodayMedications } from '@/hooks/useMedications';
 import { getBPCategoryDef } from '@/constants/bp-categories';
-import type { ChatMessage, ChatSession } from '@/types';
+import api from '@/lib/api';
+import type { ChatMessage, ChatSession, ApiResponse } from '@/types';
+
+interface BotSettings { botName: string; botDescription: string; avatarBase64: string | null; }
+
+function useBotSettings() {
+  return useQuery<BotSettings>({
+    queryKey: ['bot-settings'],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<BotSettings>>('/settings/bot');
+      return res.data.data ?? { botName: 'Nara', botDescription: 'Asisten Kesehatan AI', avatarBase64: null };
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+function BotAvatar({ avatarBase64, name, size = 32 }: { avatarBase64: string | null; name: string; size?: number }) {
+  if (avatarBase64) {
+    return (
+      <div style={{ width: size, height: size }} className="rounded-full overflow-hidden shrink-0 mt-1 shadow-sm">
+        <img src={avatarBase64} alt={name} className="w-full h-full object-cover" />
+      </div>
+    );
+  }
+  return (
+    <div style={{ width: size, height: size, fontSize: size * 0.4 }}
+      className="rounded-full bg-[#2E86C1] flex items-center justify-center shrink-0 mt-1 shadow-sm text-white font-bold">
+      {name[0]?.toUpperCase() ?? 'N'}
+    </div>
+  );
+}
 
 const QUICK_REPLIES = [
   'Berapa tekanan darah normal?',
@@ -70,15 +100,13 @@ function SessionItem({
   );
 }
 
-function MessageBubble({ message, userInitial }: { message: ChatMessage; userInitial: string }) {
+function MessageBubble({ message, userInitial, botAvatar, botName }: { message: ChatMessage; userInitial: string; botAvatar: string | null; botName: string }) {
   const isUser = message.role?.toUpperCase() === 'USER';
 
   return (
     <div className={cn('flex gap-2 mb-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-1 shadow-sm">
-          <Image src="/nara-avatar.png" alt="Nara" width={32} height={32} className="w-full h-full object-cover" />
-        </div>
+        <BotAvatar avatarBase64={botAvatar} name={botName} />
       )}
 
       <div className={cn('flex flex-col gap-0.5 max-w-[75%] sm:max-w-[65%]', isUser ? 'items-end' : 'items-start')}>
@@ -106,12 +134,10 @@ function MessageBubble({ message, userInitial }: { message: ChatMessage; userIni
   );
 }
 
-function TypingIndicator() {
+function TypingIndicator({ botAvatar, botName }: { botAvatar: string | null; botName: string }) {
   return (
     <div className="flex gap-2 mb-3">
-      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-1">
-        <Image src="/nara-avatar.png" alt="Nara" width={32} height={32} className="w-full h-full object-cover" />
-      </div>
+      <BotAvatar avatarBase64={botAvatar} name={botName} />
       <div className="bg-white border border-[#E8F4FD] rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
         <div className="flex items-center gap-1.5">
           {[0, 1, 2].map((i) => (
@@ -128,12 +154,15 @@ export function ChatWindow() {
   const { user } = useAuthStore();
   const { data: bpPaginated } = useBPRecords(1, 1);
   const { data: todayMeds = [] } = useTodayMedications();
+  const { data: botSettings } = useBotSettings();
   const [input, setInput] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const userInitial = user?.fullName?.charAt(0).toUpperCase() ?? 'A';
+  const botName = botSettings?.botName ?? 'Nara';
+  const botAvatar = botSettings?.avatarBase64 ?? null;
   const lastBP = bpPaginated?.items?.[0];
   const catDef = lastBP ? getBPCategoryDef(lastBP.category) : null;
   const takenMeds = todayMeds.filter(m => m.todayLogs.some(l => l.status === 'TAKEN')).length;
@@ -193,10 +222,8 @@ export function ChatWindow() {
         {/* Sidebar header */}
         <div className="px-4 py-4 flex items-center justify-between border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full overflow-hidden">
-              <Image src="/nara-avatar.png" alt="Nara" width={28} height={28} className="w-full h-full object-cover" />
-            </div>
-            <span className="text-white font-semibold text-sm">Nara</span>
+            <BotAvatar avatarBase64={botAvatar} name={botName} size={28} />
+            <span className="text-white font-semibold text-sm">{botName}</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -265,11 +292,9 @@ export function ChatWindow() {
             </button>
 
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-9 h-9 rounded-full overflow-hidden shadow ring-2 ring-white/20 shrink-0">
-                <Image src="/nara-avatar.png" alt="Nara" width={36} height={36} className="w-full h-full object-cover" />
-              </div>
+              <BotAvatar avatarBase64={botAvatar} name={botName} size={36} />
               <div>
-                <p className="font-semibold text-sm leading-tight">Nara</p>
+                <p className="font-semibold text-sm leading-tight">{botName}</p>
                 <div className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                   <span className="text-xs text-[#AED6F1]">Online</span>
@@ -333,10 +358,10 @@ export function ChatWindow() {
 
           {messages.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center h-full text-center px-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden mb-4 shadow-md ring-4 ring-[#2E86C1]/20">
-                <Image src="/nara-avatar.png" alt="Nara" width={64} height={64} className="w-full h-full object-cover" />
+              <div className="mb-4 shadow-md ring-4 ring-[#2E86C1]/20 rounded-full">
+                <BotAvatar avatarBase64={botAvatar} name={botName} size={64} />
               </div>
-              <p className="text-[#1A2A3A] font-semibold mb-1">Halo! Saya Nara 👋</p>
+              <p className="text-[#1A2A3A] font-semibold mb-1">Halo! Saya {botName} 👋</p>
               <p className="text-[#5D8AA8] text-sm mb-5 max-w-xs">
                 Tanyakan apa saja tentang hipertensi, tekanan darah, atau kesehatan Anda.
               </p>
@@ -355,10 +380,10 @@ export function ChatWindow() {
           )}
 
           {messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} userInitial={userInitial} />
+            <MessageBubble key={msg.id} message={msg} userInitial={userInitial} botAvatar={botAvatar} botName={botName} />
           ))}
 
-          {isTyping && <TypingIndicator />}
+          {isTyping && <TypingIndicator botAvatar={botAvatar} botName={botName} />}
           {error && <p className="text-center text-red-500 text-xs py-2">{error}</p>}
           <div ref={messagesEndRef} />
         </div>

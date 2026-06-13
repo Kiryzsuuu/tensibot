@@ -13,7 +13,7 @@ export default function Index() {
     if (token) {
       router.replace('/(tabs)/dashboard');
     } else {
-      router.replace('/(auth)/login');
+      router.replace('/landing');
     }
   }, [_hasHydrated, token]);
 
