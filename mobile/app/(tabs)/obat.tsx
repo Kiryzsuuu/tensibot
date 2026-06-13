@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
   ScrollView, View, Text, TouchableOpacity, StyleSheet,
-  Alert, ActivityIndicator, RefreshControl, Modal, TextInput,
+  Alert, ActivityIndicator, RefreshControl, Modal, TextInput, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Colors } from '@/constants/colors';
@@ -13,6 +14,15 @@ export default function ObatScreen() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<'today' | 'manage'>('today');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [pickerDate, setPickerDate] = useState(new Date());
+  const [onTimeSelected, setOnTimeSelected] = useState<((t: string) => void) | null>(null);
+
+  const openTimePicker = (callback: (t: string) => void) => {
+    setPickerDate(new Date());
+    setOnTimeSelected(() => callback);
+    setShowTimePicker(true);
+  };
 
   const { data: todayData, isLoading: todayLoading, refetch: refetchToday } = useQuery({
     queryKey: ['medications', 'today'],
@@ -160,24 +170,54 @@ export default function ObatScreen() {
         </ScrollView>
       )}
 
-      <AddMedModal visible={showAddModal} onClose={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); void qc.invalidateQueries({ queryKey: ['medications'] }); }} />
+      <AddMedModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => { setShowAddModal(false); void qc.invalidateQueries({ queryKey: ['medications'] }); }}
+        openTimePicker={openTimePicker}
+      />
+
+      {showTimePicker && (
+        <DateTimePicker
+          value={pickerDate}
+          mode="time"
+          is24Hour
+          display={Platform.OS === 'android' ? 'clock' : 'spinner'}
+          onValueChange={(_event, date) => {
+            setShowTimePicker(Platform.OS === 'ios');
+            if (date && onTimeSelected) {
+              const hh = String(date.getHours()).padStart(2, '0');
+              const mm = String(date.getMinutes()).padStart(2, '0');
+              onTimeSelected(`${hh}:${mm}`);
+            }
+          }}
+          onDismiss={() => setShowTimePicker(false)}
+        />
+      )}
     </View>
   );
 }
 
-function AddMedModal({ visible, onClose, onSuccess }: { visible: boolean; onClose: () => void; onSuccess: () => void }) {
+function AddMedModal({ visible, onClose, onSuccess, openTimePicker }: { visible: boolean; onClose: () => void; onSuccess: () => void; openTimePicker: (cb: (t: string) => void) => void }) {
   const [name, setName] = useState('');
   const [dosage, setDosage] = useState('');
-  const [times, setTimes] = useState('');
+  const [times, setTimes] = useState<string[]>([]);
   const [instructions, setInstructions] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const addTime = (t: string) => {
+    setTimes((prev) => prev.includes(t) ? prev : [...prev, t].sort());
+  };
+
+  const removeTime = (t: string) => setTimes((prev) => prev.filter((x) => x !== t));
+
+  const reset = () => { setName(''); setDosage(''); setTimes([]); setInstructions(''); };
 
   const onSubmit = async () => {
     if (!name.trim() || !dosage.trim()) { Alert.alert('Perhatian', 'Nama dan dosis wajib diisi'); return; }
     setLoading(true);
     try {
-      const timesArr = times.split(',').map((t) => t.trim()).filter(Boolean);
-      if (timesArr.length === 0) timesArr.push('08:00');
+      const timesArr = times.length > 0 ? times : ['08:00'];
       await api.post('/medications', {
         name: name.trim(),
         dosage: dosage.trim(),
@@ -186,38 +226,72 @@ function AddMedModal({ visible, onClose, onSuccess }: { visible: boolean; onClos
         startDate: new Date().toISOString(),
         instructions: instructions.trim() || undefined,
       });
-      setName(''); setDosage(''); setTimes(''); setInstructions('');
+      reset();
       onSuccess();
     } catch { Alert.alert('Error', 'Gagal menambahkan obat'); }
     finally { setLoading(false); }
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={modalStyles.overlay}>
-        <View style={modalStyles.sheet}>
-          <View style={modalStyles.handle} />
-          <Text style={modalStyles.title}>Tambah Obat Baru</Text>
-          {[
-            { label: 'Nama Obat *', value: name, set: setName, placeholder: 'Contoh: Amlodipine' },
-            { label: 'Dosis *', value: dosage, set: setDosage, placeholder: 'Contoh: 5mg' },
-            { label: 'Waktu minum (pisah koma)', value: times, set: setTimes, placeholder: 'Contoh: 07:00, 19:00' },
-            { label: 'Instruksi', value: instructions, set: setInstructions, placeholder: 'Setelah makan (opsional)' },
-          ].map((f) => (
-            <View key={f.label} style={modalStyles.field}>
-              <Text style={modalStyles.label}>{f.label}</Text>
-              <TextInput style={modalStyles.input} placeholder={f.placeholder} placeholderTextColor={Colors.primaryMid} value={f.value} onChangeText={f.set} />
+    <>
+      <Modal visible={visible} animationType="slide" transparent>
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.sheet}>
+            <View style={modalStyles.handle} />
+            <Text style={modalStyles.title}>Tambah Obat Baru</Text>
+
+            {/* Nama */}
+            <View style={modalStyles.field}>
+              <Text style={modalStyles.label}>Nama Obat *</Text>
+              <TextInput style={modalStyles.input} placeholder="Contoh: Amlodipine" placeholderTextColor={Colors.primaryMid} value={name} onChangeText={setName} />
             </View>
-          ))}
-          <TouchableOpacity style={modalStyles.btn} onPress={onSubmit} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={modalStyles.btnText}>Simpan Obat</Text>}
-          </TouchableOpacity>
-          <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
-            <Text style={modalStyles.cancelBtnText}>Batal</Text>
-          </TouchableOpacity>
+
+            {/* Dosis */}
+            <View style={modalStyles.field}>
+              <Text style={modalStyles.label}>Dosis *</Text>
+              <TextInput style={modalStyles.input} placeholder="Contoh: 5mg" placeholderTextColor={Colors.primaryMid} value={dosage} onChangeText={setDosage} />
+            </View>
+
+            {/* Waktu minum — time picker chips */}
+            <View style={modalStyles.field}>
+              <Text style={modalStyles.label}>Waktu Minum</Text>
+              <View style={modalStyles.chipsRow}>
+                {times.map((t) => (
+                  <View key={t} style={modalStyles.chip}>
+                    <Ionicons name="time-outline" size={13} color={Colors.primary} />
+                    <Text style={modalStyles.chipText}>{t}</Text>
+                    <TouchableOpacity onPress={() => removeTime(t)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                      <Ionicons name="close-circle" size={15} color={Colors.primaryMid} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity style={modalStyles.addTimeBtn} onPress={() => openTimePicker(addTime)}>
+                  <Ionicons name="add" size={15} color={Colors.primary} />
+                  <Text style={modalStyles.addTimeBtnText}>Tambah Jam</Text>
+                </TouchableOpacity>
+              </View>
+              {times.length === 0 && (
+                <Text style={modalStyles.hint}>Default 08:00 jika tidak diisi</Text>
+              )}
+            </View>
+
+            {/* Instruksi */}
+            <View style={modalStyles.field}>
+              <Text style={modalStyles.label}>Instruksi</Text>
+              <TextInput style={modalStyles.input} placeholder="Setelah makan (opsional)" placeholderTextColor={Colors.primaryMid} value={instructions} onChangeText={setInstructions} />
+            </View>
+
+            <TouchableOpacity style={modalStyles.btn} onPress={onSubmit} disabled={loading}>
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={modalStyles.btnText}>Simpan Obat</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={modalStyles.cancelBtn} onPress={() => { reset(); onClose(); }}>
+              <Text style={modalStyles.cancelBtnText}>Batal</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+
+    </>
   );
 }
 
@@ -277,4 +351,10 @@ const modalStyles = StyleSheet.create({
   btnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
   cancelBtn: { borderWidth: 1.5, borderColor: Colors.border, borderRadius: 14, paddingVertical: 13, alignItems: 'center', marginTop: 10 },
   cancelBtnText: { color: Colors.textMuted, fontWeight: '600', fontSize: 14 },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Colors.primaryLight, borderWidth: 1.5, borderColor: Colors.primaryMid, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7 },
+  chipText: { fontSize: 13, fontWeight: '700', color: Colors.primary },
+  addTimeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1.5, borderColor: Colors.primary, borderStyle: 'dashed', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7 },
+  addTimeBtnText: { fontSize: 13, fontWeight: '600', color: Colors.primary },
+  hint: { fontSize: 11, color: Colors.textMuted, marginTop: 5, fontStyle: 'italic' },
 });
