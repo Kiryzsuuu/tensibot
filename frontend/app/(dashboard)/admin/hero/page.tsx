@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Plus, Edit2, Trash2, Image, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image, CheckCircle, XCircle, Monitor, Smartphone, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useHeroAdmin, useCreateHero, useUpdateHero, useDeleteHero } from '@/hooks/useHero';
 import type { HeroContent } from '@/types';
 import type { HeroPayload } from '@/hooks/useHero';
@@ -215,6 +215,147 @@ function HeroForm({ initial, onSubmit, onCancel, isLoading }: HeroFormProps) {
   );
 }
 
+// ─── Mobile Preview Modal ─────────────────────────────────────────────────────
+
+function MobilePreviewModal({ heroes, onClose }: { heroes: HeroContent[]; onClose: () => void }) {
+  const [current, setCurrent] = useState(0);
+  const active = heroes.filter(h => h.isActive).sort((a, b) => a.order - b.order);
+
+  const prev = () => setCurrent(i => (i - 1 + active.length) % active.length);
+  const next = () => setCurrent(i => (i + 1) % active.length);
+  const slide = active[current];
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <Smartphone size={16} className="text-[#2E86C1]" />
+            <span className="text-sm font-bold text-[#1A2A3A]">Preview Mobile</span>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+            <X size={16} className="text-gray-500" />
+          </button>
+        </div>
+
+        {/* Phone frame */}
+        <div className="p-5 flex flex-col items-center">
+          <div className="relative w-[260px] bg-[#F4F8FC] rounded-[32px] border-[6px] border-[#1A2A3A] shadow-xl overflow-hidden" style={{ minHeight: 520 }}>
+            {/* Notch */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#1A2A3A] rounded-b-2xl z-10" />
+
+            {/* Screen content */}
+            <div className="pt-8 pb-4 px-3">
+              {/* Status bar sim */}
+              <div className="flex justify-between items-center mb-3 px-1">
+                <span className="text-[10px] font-bold text-[#1A2A3A]">9:41</span>
+                <div className="flex gap-1 items-center">
+                  <div className="w-3 h-2 border border-[#1A2A3A] rounded-sm relative">
+                    <div className="absolute inset-0.5 bg-[#1A2A3A] rounded-sm" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Greeting */}
+              <div className="bg-white rounded-xl px-3 py-2.5 mb-3 shadow-sm">
+                <p className="text-[10px] text-gray-400">Selamat Pagi,</p>
+                <p className="text-xs font-bold text-[#1A2A3A]">Pengguna Tensi-Bot</p>
+              </div>
+
+              {/* Hero slide preview */}
+              {active.length === 0 ? (
+                <div className="bg-[#EAF4FB] rounded-2xl h-[110px] flex flex-col items-center justify-center gap-1">
+                  <Image size={22} className="text-[#B2D4EC]" />
+                  <p className="text-[10px] text-[#B2D4EC]">Tidak ada banner aktif</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div
+                    className="rounded-2xl overflow-hidden relative"
+                    style={{ height: 110, backgroundColor: slide?.imageBase64 ? '#1a3a5c' : '#2E86C1' }}
+                  >
+                    {slide?.imageBase64 && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={slide.imageBase64}
+                          alt={slide.imageAlt ?? slide.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/45" />
+                      </>
+                    )}
+                    <div className="relative z-10 p-3.5 h-full flex flex-col justify-center">
+                      <p className="text-white font-bold text-[12px] leading-tight mb-0.5 line-clamp-2">{slide?.title}</p>
+                      {slide?.subtitle && (
+                        <p className="text-white/80 text-[10px] leading-tight line-clamp-2">{slide.subtitle}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Dots */}
+                  {active.length > 1 && (
+                    <div className="flex justify-center gap-1.5 mt-2">
+                      {active.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrent(i)}
+                          className={cn(
+                            'rounded-full transition-all',
+                            i === current ? 'w-4 h-1.5 bg-[#2E86C1]' : 'w-1.5 h-1.5 bg-gray-300'
+                          )}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Rest of screen sim */}
+              <div className="mt-3 space-y-2">
+                <div className="bg-white rounded-xl p-3 shadow-sm">
+                  <div className="h-2 w-24 bg-gray-100 rounded mb-2" />
+                  <div className="flex gap-2">
+                    <div className="flex-1 h-12 bg-[#EAF4FB] rounded-lg" />
+                    <div className="flex-1 h-12 bg-[#EAF4FB] rounded-lg" />
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl p-3 shadow-sm">
+                  <div className="h-2 w-20 bg-gray-100 rounded mb-2" />
+                  <div className="h-8 bg-[#EAF4FB] rounded-lg" />
+                </div>
+              </div>
+            </div>
+
+            {/* Home bar */}
+            <div className="flex justify-center pb-2">
+              <div className="w-20 h-1 bg-[#1A2A3A]/20 rounded-full" />
+            </div>
+          </div>
+
+          {/* Navigation */}
+          {active.length > 1 && (
+            <div className="flex items-center gap-4 mt-4">
+              <button onClick={prev} className="p-2 rounded-xl border border-[#D6EAF8] hover:bg-[#EAF4FB] transition-colors">
+                <ChevronLeft size={16} className="text-[#2E86C1]" />
+              </button>
+              <span className="text-xs text-[#5D8AA8] font-medium">{current + 1} / {active.length}</span>
+              <button onClick={next} className="p-2 rounded-xl border border-[#D6EAF8] hover:bg-[#EAF4FB] transition-colors">
+                <ChevronRight size={16} className="text-[#2E86C1]" />
+              </button>
+            </div>
+          )}
+
+          <p className="text-[10px] text-[#B2D4EC] mt-3 text-center">
+            Menampilkan {active.length} banner aktif dari {heroes.length} total
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AdminHeroPage() {
@@ -226,6 +367,7 @@ export default function AdminHeroPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingHero, setEditingHero] = useState<HeroContent | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   const handleCreate = useCallback(
     async (payload: HeroPayload) => {
@@ -270,6 +412,10 @@ export default function AdminHeroPage() {
 
   return (
     <div>
+      {showMobilePreview && (
+        <MobilePreviewModal heroes={heroes} onClose={() => setShowMobilePreview(false)} />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -278,15 +424,37 @@ export default function AdminHeroPage() {
             Banner yang tampil di halaman dashboard pengguna
           </p>
         </div>
-        {!showForm && !editingHero && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-[#2E86C1] text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-[#154360] transition-colors shadow-sm"
+        <div className="flex items-center gap-2">
+          {/* Preview Web */}
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#2E86C1] border border-[#B2D4EC] hover:bg-[#EAF4FB] px-3.5 py-2.5 rounded-xl transition-colors"
           >
-            <Plus size={16} />
-            Tambah Banner
+            <Monitor size={15} />
+            Preview Web
+          </a>
+
+          {/* Preview Mobile */}
+          <button
+            onClick={() => setShowMobilePreview(true)}
+            className="flex items-center gap-1.5 text-sm font-semibold text-[#2E86C1] border border-[#B2D4EC] hover:bg-[#EAF4FB] px-3.5 py-2.5 rounded-xl transition-colors"
+          >
+            <Smartphone size={15} />
+            Preview Mobile
           </button>
-        )}
+
+          {!showForm && !editingHero && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 bg-[#2E86C1] text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-[#154360] transition-colors shadow-sm"
+            >
+              <Plus size={16} />
+              Tambah Banner
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Create form */}
