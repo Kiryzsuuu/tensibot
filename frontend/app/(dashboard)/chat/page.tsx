@@ -1,14 +1,12 @@
 'use client';
 
-import { Activity, Heart, Pill, Info } from 'lucide-react';
+import { Activity, Pill } from 'lucide-react';
 import { ChatWindow } from '@/components/chat/ChatWindow';
-import { useAuthStore } from '@/store/authStore';
 import { useBPRecords } from '@/hooks/useBPRecords';
 import { useTodayMedications } from '@/hooks/useMedications';
 import { getBPCategoryDef } from '@/constants/bp-categories';
 
 export default function ChatPage() {
-  const { user } = useAuthStore();
   const { data: bpPaginated } = useBPRecords(1, 1);
   const { data: todayMeds = [] } = useTodayMedications();
 
@@ -16,70 +14,67 @@ export default function ChatPage() {
   const catDef = lastRecord ? getBPCategoryDef(lastRecord.category) : null;
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-[#1A2A3A]">Chatbot AI</h1>
-        <p className="text-sm text-[#5D8AA8] mt-0.5">
-          Tanyakan apa saja tentang hipertensi kepada asisten AI kami
-        </p>
-      </div>
+    /*
+     * Escape the dashboard padding so chat fills edge-to-edge like WhatsApp.
+     * -m-4 md:-m-6 lg:-m-8 cancels the parent padding in layout.tsx
+     */
+    <div className="-m-4 md:-m-6 lg:-m-8 flex h-[calc(100vh-64px)]">
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)] min-h-[500px]">
-        {/* Chat window — takes most space */}
-        <div className="lg:col-span-3 card overflow-hidden flex flex-col">
-          <ChatWindow />
+      {/* ── Desktop side panel ─────────────────────────────────────── */}
+      <aside className="hidden lg:flex flex-col w-72 xl:w-80 border-r border-[#D6EAF8] bg-white shrink-0">
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-[#D6EAF8]">
+          <p className="text-base font-bold text-[#1A2A3A]">Chatbot AI</p>
+          <p className="text-xs text-[#5D8AA8] mt-0.5">Asisten kesehatan hipertensi</p>
         </div>
 
-        {/* Right panel — health info */}
-        <div className="hidden lg:flex flex-col gap-4">
+        {/* Health summary */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {/* Last BP */}
-          <div className="card p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Activity size={16} className="text-[#2E86C1]" />
-              <p className="text-sm font-semibold text-[#1A2A3A]">Tensi Terakhir</p>
+          <div className="bg-[#F4F8FC] rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity size={15} className="text-[#2E86C1]" />
+              <p className="text-xs font-semibold text-[#5D8AA8] uppercase tracking-wide">Tensi Terakhir</p>
             </div>
             {lastRecord ? (
               <div>
-                <p className="text-2xl font-bold text-[#1A2A3A] bp-number">
+                <p className="text-3xl font-bold text-[#1A2A3A] tracking-tight">
                   {lastRecord.systolic}
-                  <span className="text-[#AED6F1] font-normal text-lg">/</span>
+                  <span className="text-[#AED6F1] font-normal text-xl">/</span>
                   {lastRecord.diastolic}
+                  <span className="text-sm font-normal text-[#5D8AA8] ml-1">mmHg</span>
                 </p>
-                <p className="text-xs text-[#5D8AA8]">mmHg</p>
                 {catDef && (
-                  <span
-                    className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                    style={{ backgroundColor: catDef.bgColor, color: catDef.textColor }}
-                  >
+                  <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: catDef.bgColor, color: catDef.textColor }}>
                     {catDef.label}
                   </span>
                 )}
               </div>
             ) : (
-              <p className="text-xs text-[#AED6F1]">Belum ada data</p>
+              <p className="text-sm text-[#AED6F1]">Belum ada data</p>
             )}
           </div>
 
-          {/* Today's meds */}
-          <div className="card p-4">
+          {/* Today meds */}
+          <div className="bg-[#F4F8FC] rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Pill size={16} className="text-[#2E86C1]" />
-              <p className="text-sm font-semibold text-[#1A2A3A]">Obat Hari Ini</p>
+              <Pill size={15} className="text-[#2E86C1]" />
+              <p className="text-xs font-semibold text-[#5D8AA8] uppercase tracking-wide">Obat Hari Ini</p>
             </div>
             {todayMeds.length === 0 ? (
-              <p className="text-xs text-[#AED6F1]">Tidak ada obat terjadwal</p>
+              <p className="text-sm text-[#AED6F1]">Tidak ada obat terjadwal</p>
             ) : (
               <div className="space-y-2">
-                {todayMeds.slice(0, 4).map((m) => {
+                {todayMeds.slice(0, 5).map((m) => {
                   const taken = m.todayLogs.some((l) => l.status === 'TAKEN');
                   return (
-                    <div key={m.id} className="flex items-center gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full shrink-0 ${
-                          taken ? 'bg-green-500' : 'bg-[#AED6F1]'
-                        }`}
-                      />
-                      <p className="text-xs text-[#1A2A3A] truncate">{m.name}</p>
+                    <div key={m.id} className="flex items-center gap-2.5">
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${taken ? 'bg-green-500' : 'bg-[#AED6F1]'}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-[#1A2A3A] truncate">{m.name}</p>
+                        <p className="text-xs text-[#AED6F1]">{m.dosage}</p>
+                      </div>
+                      {taken && <span className="text-xs text-green-600 font-medium shrink-0">✓</span>}
                     </div>
                   );
                 })}
@@ -88,16 +83,17 @@ export default function ChatPage() {
           </div>
 
           {/* Disclaimer */}
-          <div className="card p-4 bg-[#EAF4FB] border-[#AED6F1]">
-            <div className="flex items-start gap-2">
-              <Info size={14} className="text-[#2E86C1] shrink-0 mt-0.5" />
-              <p className="text-xs text-[#1A5276] leading-relaxed">
-                Tensi-Bot adalah asisten informasi. Bukan pengganti konsultasi dokter. Selalu
-                hubungi tenaga medis untuk penanganan medis.
-              </p>
-            </div>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-3">
+            <p className="text-xs text-yellow-800 leading-relaxed">
+              ⚠️ Tensi-Bot adalah asisten informasi, bukan pengganti dokter. Selalu konsultasikan kondisi Anda dengan tenaga medis.
+            </p>
           </div>
         </div>
+      </aside>
+
+      {/* ── Chat area ──────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <ChatWindow />
       </div>
     </div>
   );
