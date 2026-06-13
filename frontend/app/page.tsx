@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Activity, Heart, Bell, BookOpen, Shield, TrendingDown, ChevronRight, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Activity, Heart, Bell, BookOpen, Shield, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { NewsSlider } from '@/components/landing/NewsSlider';
 
 const FEATURES = [
   { icon: Activity, title: 'Pantau Tekanan Darah', desc: 'Catat dan visualisasikan riwayat tekanan darah dalam grafik interaktif 30 hari.', color: '#2E86C1', bg: '#EAF4FB' },
@@ -58,8 +59,21 @@ async function getSettings() {
   }
 }
 
+async function getHeroSlides() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/hero/active`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function LandingPage() {
-  const settings = await getSettings();
+  const [settings, heroSlides] = await Promise.all([getSettings(), getHeroSlides()]);
   const { hero, stats, benefits, cta } = settings;
 
   return (
@@ -115,7 +129,6 @@ export default async function LandingPage() {
                 className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#2E86C1] to-[#2471A3] hover:from-[#2471A3] hover:to-[#1a5c8a] text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-xl shadow-[#2E86C1]/30 hover:shadow-2xl hover:-translate-y-0.5 text-base"
               >
                 {hero.ctaPrimary}
-                <ChevronRight size={18} />
               </Link>
               <Link
                 href="/login"
@@ -146,6 +159,9 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ─── News Slider ──────────────────────────────────────────────────── */}
+      {heroSlides.length > 0 && <NewsSlider slides={heroSlides} />}
 
       {/* ─── Features ─────────────────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
@@ -201,7 +217,6 @@ export default async function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/register" className="inline-flex items-center justify-center gap-2 bg-white text-[#2E86C1] font-bold px-8 py-3.5 rounded-xl hover:bg-[#EAF4FB] transition-all shadow-2xl hover:-translate-y-0.5 text-base">
               {cta.buttonText}
-              <ChevronRight size={18} />
             </Link>
             <Link href="/login" className="inline-flex items-center justify-center gap-2 border-2 border-white/30 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-white/10 transition-all text-base">
               Sudah punya akun? Masuk

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, CheckCircle, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
@@ -81,10 +81,6 @@ export default function RegisterPage() {
       </div>
 
       <div className="w-full max-w-md relative">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm mb-4 transition-colors">
-          <ArrowLeft size={15} />
-          Kembali ke beranda
-        </Link>
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#154360] to-[#2E86C1] px-8 py-6 text-center">
@@ -285,6 +281,10 @@ export default function RegisterPage() {
                   'Buat Akun Gratis'
                 )}
               </button>
+
+              <Link href="/" className="flex items-center justify-center w-full py-3 rounded-xl border border-[#D6E8F5] text-[#5D8AA8] hover:bg-[#EAF4FB] transition-colors text-sm font-medium">
+                Kembali ke Beranda
+              </Link>
             </form>
 
             <p className="text-center text-xs text-[#AED6F1] mt-5">

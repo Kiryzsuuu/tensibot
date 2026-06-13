@@ -24,9 +24,9 @@ const profileSchema = z.object({
   fullName: z.string().min(2, 'Minimal 2 karakter'),
   phoneNumber: z.string().optional(),
   dateOfBirth: z.string().optional(),
-  gender: z.enum(['MALE', 'FEMALE']).optional(),
-  weightKg: z.number().min(20).max(300).optional(),
-  heightCm: z.number().min(50).max(300).optional(),
+  gender: z.enum(['MALE', 'FEMALE']).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  weightKg: z.preprocess(v => (v === '' || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v), z.number().min(20).max(300).optional()),
+  heightCm: z.preprocess(v => (v === '' || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v), z.number().min(50).max(300).optional()),
   diagnosis: z.string().optional(),
 });
 
@@ -64,7 +64,17 @@ export default function ProfilPage() {
       reset({
         fullName: user?.fullName ?? '',
         phoneNumber: profile?.phoneNumber ?? '',
-        dateOfBirth: profile?.dateOfBirth?.split('T')[0] ?? '',
+        dateOfBirth: (() => {
+          const dob = profile?.dateOfBirth as unknown;
+          if (!dob) return '';
+          // Firestore Timestamp shape: { _seconds, _nanoseconds } or { seconds, nanoseconds }
+          if (typeof dob === 'object' && dob !== null && ('_seconds' in dob || 'seconds' in dob)) {
+            const secs = (dob as Record<string, number>)['_seconds'] ?? (dob as Record<string, number>)['seconds'];
+            return new Date(secs * 1000).toISOString().split('T')[0];
+          }
+          const d = new Date(dob as string);
+          return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+        })(),
         gender: profile?.gender,
         weightKg: profile?.weightKg,
         heightCm: profile?.heightCm,
@@ -75,7 +85,16 @@ export default function ProfilPage() {
 
   const { mutateAsync: updateProfile, isPending } = useMutation({
     mutationFn: async (data: ProfileForm) => {
-      const res = await api.patch<ApiResponse<UserProfile>>('/users/profile', data);
+      // Strip empty strings and NaN so backend validation doesn't reject them
+      const payload: Record<string, unknown> = {};
+      if (data.fullName) payload['fullName'] = data.fullName;
+      if (data.phoneNumber) payload['phoneNumber'] = data.phoneNumber;
+      if (data.dateOfBirth) payload['dateOfBirth'] = data.dateOfBirth;
+      if (data.gender) payload['gender'] = data.gender;
+      if (data.weightKg != null && !Number.isNaN(data.weightKg)) payload['weightKg'] = data.weightKg;
+      if (data.heightCm != null && !Number.isNaN(data.heightCm)) payload['heightCm'] = data.heightCm;
+      if (data.diagnosis) payload['diagnosis'] = data.diagnosis;
+      const res = await api.patch<ApiResponse<UserProfile>>('/users/profile', payload);
       return res.data.data;
     },
   });
@@ -143,7 +162,17 @@ export default function ProfilPage() {
               reset({
                 fullName: user?.fullName ?? '',
                 phoneNumber: profile?.phoneNumber ?? '',
-                dateOfBirth: profile?.dateOfBirth?.split('T')[0] ?? '',
+                dateOfBirth: (() => {
+          const dob = profile?.dateOfBirth as unknown;
+          if (!dob) return '';
+          // Firestore Timestamp shape: { _seconds, _nanoseconds } or { seconds, nanoseconds }
+          if (typeof dob === 'object' && dob !== null && ('_seconds' in dob || 'seconds' in dob)) {
+            const secs = (dob as Record<string, number>)['_seconds'] ?? (dob as Record<string, number>)['seconds'];
+            return new Date(secs * 1000).toISOString().split('T')[0];
+          }
+          const d = new Date(dob as string);
+          return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+        })(),
                 gender: profile?.gender,
                 weightKg: profile?.weightKg,
                 heightCm: profile?.heightCm,

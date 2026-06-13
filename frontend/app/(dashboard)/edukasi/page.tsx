@@ -144,7 +144,7 @@ function ArticleCard({ article }: { article: ContentArticle }) {
           })}
         </span>
         <span className="text-xs text-[#2E86C1] font-medium group-hover:underline">
-          Baca selengkapnya →
+          Baca selengkapnya
         </span>
       </div>
     </div>

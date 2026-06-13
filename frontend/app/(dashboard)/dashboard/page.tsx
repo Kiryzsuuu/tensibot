@@ -100,7 +100,7 @@ export default function DashboardPage() {
                 href="/monitoring"
                 className="text-xs text-[#2E86C1] hover:underline font-medium"
               >
-                Lihat semua →
+                Lihat semua
               </Link>
             </div>
             {chartLoading ? (
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <Link href="/obat" className="text-xs text-[#2E86C1] hover:underline font-medium">
-                Kelola →
+                Kelola
               </Link>
             </div>
             {medsLoading ? (

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, Bell, Plus, ChevronRight } from 'lucide-react';
+import { Menu, Bell, Plus } from 'lucide-react';
 import { getTodayWIB } from '@/lib/utils';
 
 interface TopbarProps {
@@ -38,7 +38,7 @@ export function Topbar({ onMenuToggle, notificationCount = 0 }: TopbarProps) {
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm flex-1 min-w-0">
         <span className="text-[#5D8AA8] hidden sm:block">{parentTitle}</span>
-        <ChevronRight size={14} className="text-[#AED6F1] hidden sm:block shrink-0" />
+        {parentTitle && <span className="text-[#AED6F1] hidden sm:block">/</span>}
         <span className="font-semibold text-[#1A2A3A] truncate">{pageTitle}</span>
       </div>
 
