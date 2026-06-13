@@ -35,6 +35,7 @@ type ProfileForm = z.infer<typeof profileSchema>;
 export default function ProfilPage() {
   const { user, updateUser, logout } = useAuth();
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
 
   const { data: profile } = useQuery({
@@ -74,23 +75,21 @@ export default function ProfilPage() {
 
   const { mutateAsync: updateProfile, isPending } = useMutation({
     mutationFn: async (data: ProfileForm) => {
-      const res = await api.patch<ApiResponse<{ user: typeof user; profile: UserProfile }>>(
-        '/users/profile',
-        data
-      );
+      const res = await api.patch<ApiResponse<UserProfile>>('/users/profile', data);
       return res.data.data;
     },
   });
 
   const onSubmit = async (data: ProfileForm) => {
+    setSaveError(null);
     try {
-      const result = await updateProfile(data);
-      if (result?.user) updateUser(result.user);
+      await updateProfile(data);
+      if (data.fullName) updateUser({ fullName: data.fullName });
       setSaved(true);
       setEditing(false);
       setTimeout(() => setSaved(false), 3000);
     } catch {
-      // handle error
+      setSaveError('Gagal menyimpan. Pastikan koneksi internet aktif lalu coba lagi.');
     }
   };
 
@@ -112,6 +111,12 @@ export default function ProfilPage() {
         <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm mb-5">
           <CheckCircle size={16} />
           Profil berhasil diperbarui!
+        </div>
+      )}
+
+      {saveError && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-5">
+          {saveError}
         </div>
       )}
 
@@ -289,7 +294,7 @@ export default function ProfilPage() {
         {editing && (
           <button
             type="submit"
-            disabled={isPending || !isDirty}
+            disabled={isPending}
             className="btn-primary w-full py-3"
           >
             {isPending ? (

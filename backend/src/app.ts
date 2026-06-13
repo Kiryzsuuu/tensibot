@@ -11,6 +11,7 @@ import { userRouter } from './routes/user.routes';
 import { contentRouter } from './routes/content.routes';
 import { adminRouter } from './routes/admin.routes';
 import { heroRouter } from './routes/hero.routes';
+import { settingsRouter } from './routes/settings.routes';
 import { logger } from './utils/logger';
 
 export const app = express();
@@ -55,6 +56,7 @@ app.use('/api/users', userRouter);
 app.use('/api/content', contentRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/hero', heroRouter);
+app.use('/api/settings', settingsRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 

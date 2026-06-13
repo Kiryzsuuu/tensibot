@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from './providers';
 
@@ -11,7 +11,11 @@ export const metadata: Metadata = {
     'Platform kesehatan digital berbasis AI untuk membantu penderita hipertensi memantau tekanan darah, meningkatkan kepatuhan pengobatan, dan mengakses edukasi kesehatan.',
   keywords: ['hipertensi', 'tekanan darah', 'kesehatan', 'AI', 'monitoring'],
   authors: [{ name: 'Tensi-Bot Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

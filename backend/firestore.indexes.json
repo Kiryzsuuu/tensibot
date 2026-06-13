@@ -1,7 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "bp_records",
+      "collectionGroup": "bpRecords",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
@@ -10,7 +10,7 @@
       ]
     },
     {
-      "collectionGroup": "bp_records",
+      "collectionGroup": "bpRecords",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
@@ -19,7 +19,16 @@
       ]
     },
     {
-      "collectionGroup": "bp_records",
+      "collectionGroup": "bpRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isDeleted", "order": "ASCENDING" },
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "measuredAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bpRecords",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
@@ -29,7 +38,7 @@
       ]
     },
     {
-      "collectionGroup": "medication_logs",
+      "collectionGroup": "medicationLogs",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
@@ -37,7 +46,7 @@
       ]
     },
     {
-      "collectionGroup": "medication_logs",
+      "collectionGroup": "medicationLogs",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "medicationId", "order": "ASCENDING" },
@@ -45,7 +54,7 @@
       ]
     },
     {
-      "collectionGroup": "chat_messages",
+      "collectionGroup": "chatMessages",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "sessionId", "order": "ASCENDING" },
@@ -53,7 +62,7 @@
       ]
     },
     {
-      "collectionGroup": "chat_messages",
+      "collectionGroup": "chatMessages",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "sessionId", "order": "ASCENDING" },
@@ -61,7 +70,7 @@
       ]
     },
     {
-      "collectionGroup": "chat_sessions",
+      "collectionGroup": "chatSessions",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
@@ -70,10 +79,51 @@
       ]
     },
     {
-      "collectionGroup": "admin_logs",
+      "collectionGroup": "chatSessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "heroes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "order", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "adminLogs",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "medications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "contentArticles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublished", "order": "ASCENDING" },
+        { "fieldPath": "publishedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "contentArticles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "isPublished", "order": "ASCENDING" },
+        { "fieldPath": "publishedAt", "order": "DESCENDING" }
       ]
     }
   ],

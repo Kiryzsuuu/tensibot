@@ -15,6 +15,7 @@ import {
   Users,
   FileText,
   ScrollText,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +30,7 @@ const adminNavItems = [
   { href: '/admin/users', label: 'Pengguna', icon: Users },
   { href: '/admin/content', label: 'Konten Edukasi', icon: FileText },
   { href: '/admin/hero', label: 'Hero Banner', icon: Image },
+  { href: '/admin/settings', label: 'Site Settings', icon: Settings },
   { href: '/admin/logs', label: 'Log Aktivitas', icon: ScrollText },
 ];
 
