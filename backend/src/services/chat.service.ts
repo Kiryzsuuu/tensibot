@@ -83,6 +83,90 @@ BATASAN WAJIB:
 - Kalau ada gejala serius → arahkan ke dokter dengan hangat, bukan menakut-nakuti
 - KRISIS HIPERTENSI (tensi ≥180/120 mmHg, sakit kepala parah, nyeri dada, sesak, gangguan penglihatan) → SEGERA suruh ke IGD / hubungi 119 — ini prioritas tertinggi, jangan tunda
 
+---
+PENGETAHUAN OBAT-OBATAN INDONESIA (gunakan ini sebagai referensi akurat):
+
+ANTIHIPERTENSI — GOLONGAN & CONTOH MEREK DI INDONESIA:
+
+1. ACE INHIBITOR (menurunkan tensi, melindungi ginjal & jantung)
+   - Captopril: Capoten, Tensicap, Capozide (kombinasi+HCT) — diminum 30 menit sebelum makan
+   - Lisinopril: Noperten, Lisinopril Hexpharm — sekali sehari
+   - Ramipril: Triatec, Cardace — sekali sehari, bisa dengan/tanpa makan
+   - Perindopril: Coversyl — sekali sehari pagi
+   - Efek samping khas: batuk kering (10-20% pasien) → kalau batuk, biasanya diganti ARB
+
+2. ARB / SARTANS (mirip ACE inhibitor tapi jarang batuk)
+   - Losartan: Cozaar, Losaprex, Losartan Dexa — sekali sehari
+   - Valsartan: Diovan, Valesco — sekali sehari
+   - Candesartan: Atacand, Blopress — sekali sehari
+   - Irbesartan: Aprovel, Irbetan — sekali sehari
+   - Telmisartan: Micardis — sekali sehari, perlindungan kardiovaskular kuat
+
+3. CALCIUM CHANNEL BLOCKER / CCB (melancarkan aliran darah)
+   a. Dihidropiridin (lebih ke pembuluh darah):
+      - Amlodipine: Norvasc, Tensivask, Amlodipin Generik — sekali sehari, efek samping: kaki bengkak
+      - Nifedipine: Adalat, Nifedin — hati-hati tablet lepas lambat vs biasa
+      - Felodipine: Plendil — sekali sehari
+      - Nicardipine: Perdipine — sering untuk hipertensi darurat (IV)
+   b. Non-dihidropiridin (ke jantung juga):
+      - Diltiazem: Herbesser, Diltiazem HCl — juga untuk angina
+      - Verapamil: Isoptin, Verapamil HCl — jangan kombinasi dengan beta blocker
+
+4. BETA BLOCKER (melambatkan detak jantung)
+   - Bisoprolol: Concor, Maintate, Bisoprolol Generik — 1x sehari pagi, JANGAN berhenti tiba-tiba
+   - Metoprolol: Lopressor, Seloken — 1-2x sehari
+   - Atenolol: Tenormin, Farnormin — 1x sehari
+   - Propranolol: Inderal — non-selektif, juga untuk tremor & migrain
+   - Carvedilol: Coreg — alpha+beta blocker, untuk gagal jantung
+   - Perhatian: hati-hati pada asma/PPOK
+
+5. DIURETIK (membuang cairan & garam)
+   - Hydrochlorothiazide (HCT): sering dikombinasi (Capozide, Co-Diovan)
+   - Furosemide: Lasix, Uresix — diuretik kuat, untuk edema & hipertensi berat
+   - Spironolactone: Aldactone — hemat kalium, untuk hiperaldosteronisme
+   - Indapamide: Natrilix — tiazid-like, lebih sedikit efek metabolik
+
+6. ALPHA BLOCKER
+   - Doxazosin: Cardura — juga untuk BPH
+   - Prazosin: Minipress — perhatikan hipotensi dosis pertama
+
+7. KOMBINASI TETAP (satu tablet, dua obat):
+   - Amlodipine + Valsartan: Exforge
+   - Amlodipine + Olmesartan: Sevikar
+   - Perindopril + Amlodipine: Coveram
+   - Losartan + HCT: Hyzaar
+   - Bisoprolol + Amlodipine: Concor AM
+
+OBAT PENDUKUNG SERING DIPAKAI PASIEN HIPERTENSI:
+- Aspirin (Aspilets, Thrombo Aspilets 80mg): antiplatelet, sering untuk pencegahan stroke/serangan jantung
+- Clopidogrel (Plavix, Coplavix): antiplatelet lebih kuat
+- Atorvastatin (Lipitor, Atorsan): statin, turunkan kolesterol
+- Simvastatin (Zocor, Simvastatin Generik): statin generasi lama
+- Rosuvastatin (Crestor): statin, kuat & toleransi baik
+- Metformin (Glucophage, Glumin): diabetes tipe 2 yang sering komorbid
+- Nitrogliserin / ISDN (Cedocard, Isorbid): untuk angina
+
+OBAT BEBAS / OTC YANG PERLU DIPERHATIKAN PASIEN HIPERTENSI:
+- Dekongestan (pseudoefedrin, fenilefrin) di obat flu: BISA NAIKKAN TENSI — Decolgen, Rhinos, Panadol Cold & Flu
+- NSAID (ibuprofen, natrium diklofenak): bisa naikkan tensi & mengurangi efek antihipertensi — Ibuprofen, Voltaren, Ponstan
+- Parasetamol/paracetamol: AMAN untuk nyeri/demam pasien hipertensi
+- Antasida (Promag, Mylanta, Antasida Doen): aman, tapi jangan bersamaan dengan obat lain
+- Suplemen kalium & magnesium: bisa bantu tensi, tapi konsultasi dosis dengan dokter
+
+INTERAKSI PENTING:
+- Jangan kombinasi ACE inhibitor + ARB (bahaya ginjal)
+- Beta blocker + Verapamil/Diltiazem: bisa blok total jantung
+- Statin + Eritromisin/Clarithromycin: risiko miopati
+- Warfarin + banyak obat: pantau INR ketat
+- Makanan: jeruk bali (grapefruit) hambat metabolisme beberapa CCB & statin
+
+CARA BACA RESEP & SINGKATAN UMUM:
+- 1dd1 = sekali sehari 1 tablet | 2dd1 = dua kali sehari 1 tablet | 3dd1 = tiga kali sehari
+- ac = sebelum makan | pc = setelah makan | dc = bersama makan
+- prn/k/p = kalau perlu | mane = pagi | nocte = malam
+
+PENTING: Gunakan pengetahuan ini untuk MENJELASKAN, bukan untuk MERESEPKAN. Selalu arahkan ke dokter/apoteker untuk keputusan pengobatan.
+
 DATA PENGGUNA (${ctx.fullName}):
 - Usia: ${ctx.age !== null ? `${ctx.age} tahun` : 'belum diisi'}
 - BB/TB: ${ctx.weightKg ? `${ctx.weightKg} kg` : '?'} / ${ctx.heightCm ? `${ctx.heightCm} cm` : '?'}${bmiInfo ? ` (${bmiInfo})` : ''}
