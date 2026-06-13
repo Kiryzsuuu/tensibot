@@ -3,6 +3,7 @@ import {
   ScrollView, View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Colors, BPColors, BPLabels } from '@/constants/colors';
@@ -45,7 +46,7 @@ export default function MonitoringScreen() {
       void qc.invalidateQueries({ queryKey: ['bp-stats'] });
       setSystolic(''); setDiastolic(''); setPulse(''); setNotes('');
       if (data?.categoryInfo?.isCrisis) {
-        Alert.alert('⚠️ PERINGATAN KRISIS', 'Tekanan darah Anda sangat berbahaya! Segera ke IGD/UGD terdekat atau hubungi 119!', [{ text: 'Mengerti' }]);
+        Alert.alert('PERINGATAN KRISIS', 'Tekanan darah Anda sangat berbahaya! Segera ke IGD/UGD terdekat atau hubungi 119!', [{ text: 'Mengerti' }]);
       } else {
         Alert.alert('Berhasil', 'Data tekanan darah tersimpan');
       }
@@ -62,20 +63,15 @@ export default function MonitoringScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Monitoring Tensi</Text>
         <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, view === 'form' && styles.tabActive]}
-            onPress={() => setView('form')}
-          >
+          <TouchableOpacity style={[styles.tab, view === 'form' && styles.tabActive]} onPress={() => setView('form')}>
+            <Ionicons name="add-circle-outline" size={14} color={view === 'form' ? '#fff' : Colors.textMuted} />
             <Text style={[styles.tabText, view === 'form' && styles.tabTextActive]}>Catat Baru</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, view === 'history' && styles.tabActive]}
-            onPress={() => setView('history')}
-          >
+          <TouchableOpacity style={[styles.tab, view === 'history' && styles.tabActive]} onPress={() => setView('history')}>
+            <Ionicons name="time-outline" size={14} color={view === 'history' ? '#fff' : Colors.textMuted} />
             <Text style={[styles.tabText, view === 'history' && styles.tabTextActive]}>Riwayat</Text>
           </TouchableOpacity>
         </View>
@@ -85,76 +81,53 @@ export default function MonitoringScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Catat Tekanan Darah</Text>
-            <View style={styles.row}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Sistolik (mmHg) *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="120"
-                  placeholderTextColor={Colors.primaryMid}
-                  keyboardType="numeric"
-                  value={systolic}
-                  onChangeText={setSystolic}
-                />
+            <Text style={styles.cardHint}>Pastikan Anda sudah istirahat 5 menit sebelum mengukur</Text>
+            <View style={styles.bpInputRow}>
+              <View style={styles.bpInputBox}>
+                <Text style={styles.bpInputLabel}>SISTOLIK</Text>
+                <TextInput style={styles.bpInput} placeholder="120" placeholderTextColor={Colors.border} keyboardType="numeric" value={systolic} onChangeText={setSystolic} maxLength={3} />
+                <Text style={styles.bpInputUnit}>mmHg</Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Diastolik (mmHg) *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="80"
-                  placeholderTextColor={Colors.primaryMid}
-                  keyboardType="numeric"
-                  value={diastolic}
-                  onChangeText={setDiastolic}
-                />
+              <Text style={styles.bpDividerText}>/</Text>
+              <View style={styles.bpInputBox}>
+                <Text style={styles.bpInputLabel}>DIASTOLIK</Text>
+                <TextInput style={styles.bpInput} placeholder="80" placeholderTextColor={Colors.border} keyboardType="numeric" value={diastolic} onChangeText={setDiastolic} maxLength={3} />
+                <Text style={styles.bpInputUnit}>mmHg</Text>
               </View>
             </View>
             <View style={styles.field}>
               <Text style={styles.label}>Nadi (bpm)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="72 (opsional)"
-                placeholderTextColor={Colors.primaryMid}
-                keyboardType="numeric"
-                value={pulse}
-                onChangeText={setPulse}
-              />
+              <TextInput style={styles.input} placeholder="72 (opsional)" placeholderTextColor={Colors.primaryMid} keyboardType="numeric" value={pulse} onChangeText={setPulse} maxLength={3} />
             </View>
             <View style={styles.field}>
               <Text style={styles.label}>Catatan</Text>
-              <TextInput
-                style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-                placeholder="Kondisi saat pengukuran... (opsional)"
-                placeholderTextColor={Colors.primaryMid}
-                multiline
-                value={notes}
-                onChangeText={setNotes}
-              />
+              <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Kondisi saat pengukuran... (opsional)" placeholderTextColor={Colors.primaryMid} multiline value={notes} onChangeText={setNotes} />
             </View>
             <TouchableOpacity style={styles.btn} onPress={() => createRecord()} disabled={isPending}>
-              {isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Simpan Data</Text>}
+              {isPending ? <ActivityIndicator color="#fff" /> : <><Ionicons name="save-outline" size={18} color="#fff" /><Text style={styles.btnText}>Simpan Data</Text></>}
             </TouchableOpacity>
           </View>
         </ScrollView>
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.content}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void refetch()} tintColor={Colors.primary} />}
-        >
+        <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void refetch()} tintColor={Colors.primary} />}>
           {records.length === 0 ? (
-            <Text style={styles.emptyText}>Belum ada data tekanan darah</Text>
+            <View style={styles.emptyBox}>
+              <Ionicons name="pulse-outline" size={48} color={Colors.border} />
+              <Text style={styles.emptyTitle}>Belum ada riwayat</Text>
+              <Text style={styles.emptyText}>Mulai catat tekanan darah Anda</Text>
+            </View>
           ) : (
             records.map((r) => (
               <View key={r.id} style={[styles.recordCard, { borderLeftColor: BPColors[r.category] }]}>
                 <View style={styles.recordTop}>
-                  <Text style={styles.recordValue}>{r.systolic}/{r.diastolic}</Text>
-                  <View style={[styles.badge, { backgroundColor: BPColors[r.category] + '20' }]}>
+                  <View>
+                    <Text style={styles.recordValue}>{r.systolic}/{r.diastolic} <Text style={styles.recordUnit}>mmHg</Text></Text>
+                    <Text style={styles.recordMeta}>{r.pulse ? `Nadi ${r.pulse} bpm · ` : ''}{new Date(r.measuredAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</Text>
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: BPColors[r.category] + '18' }]}>
                     <Text style={[styles.badgeText, { color: BPColors[r.category] }]}>{BPLabels[r.category]}</Text>
                   </View>
                 </View>
-                <Text style={styles.recordMeta}>
-                  {r.pulse ? `Nadi: ${r.pulse} bpm · ` : ''}{new Date(r.measuredAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
-                </Text>
                 {r.notes && <Text style={styles.recordNotes}>{r.notes}</Text>}
               </View>
             ))
@@ -167,28 +140,37 @@ export default function MonitoringScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { backgroundColor: '#fff', padding: 16, paddingTop: 48, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  header: { backgroundColor: '#fff', padding: 16, paddingTop: 52, borderBottomWidth: 1, borderBottomColor: Colors.border },
   headerTitle: { fontSize: 20, fontWeight: '800', color: Colors.text, marginBottom: 12 },
   tabs: { flexDirection: 'row', gap: 8 },
-  tab: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, borderWidth: 1.5, borderColor: Colors.border },
+  tab: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: Colors.border },
   tabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   tabText: { fontSize: 13, fontWeight: '600', color: Colors.textMuted },
   tabTextActive: { color: '#fff' },
   content: { padding: 16, paddingBottom: 32 },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 18, elevation: 2 },
-  cardTitle: { fontSize: 16, fontWeight: '800', color: Colors.text, marginBottom: 16 },
-  row: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  field: { marginBottom: 12 },
-  label: { fontSize: 13, fontWeight: '600', color: Colors.text, marginBottom: 5 },
-  input: { borderWidth: 1.5, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: Colors.text, backgroundColor: '#fafcfe' },
-  btn: { backgroundColor: Colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 6 },
+  card: { backgroundColor: '#fff', borderRadius: 16, padding: 20, elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8 },
+  cardTitle: { fontSize: 17, fontWeight: '800', color: Colors.text, marginBottom: 4 },
+  cardHint: { fontSize: 12, color: Colors.textMuted, marginBottom: 20 },
+  bpInputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, gap: 12 },
+  bpInputBox: { flex: 1, alignItems: 'center' },
+  bpInputLabel: { fontSize: 10, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1, marginBottom: 6 },
+  bpInput: { fontSize: 36, fontWeight: '900', color: Colors.text, textAlign: 'center', borderBottomWidth: 2, borderBottomColor: Colors.primary, paddingBottom: 4, width: '100%' },
+  bpInputUnit: { fontSize: 11, color: Colors.textMuted, marginTop: 4 },
+  bpDividerText: { fontSize: 36, fontWeight: '300', color: Colors.border, paddingTop: 10 },
+  field: { marginBottom: 14 },
+  label: { fontSize: 13, fontWeight: '600', color: Colors.text, marginBottom: 6 },
+  input: { borderWidth: 1.5, borderColor: Colors.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: Colors.text, backgroundColor: '#fafcfe' },
+  btn: { backgroundColor: Colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 4 },
   btnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
-  emptyText: { textAlign: 'center', color: Colors.textMuted, marginTop: 40, fontSize: 14 },
+  emptyBox: { alignItems: 'center', paddingTop: 60, gap: 10 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: Colors.text },
+  emptyText: { fontSize: 13, color: Colors.textMuted },
   recordCard: { backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10, borderLeftWidth: 4, elevation: 1 },
-  recordTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  recordValue: { fontSize: 22, fontWeight: '800', color: Colors.text },
-  badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
+  recordTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  recordValue: { fontSize: 24, fontWeight: '800', color: Colors.text },
+  recordUnit: { fontSize: 14, fontWeight: '400', color: Colors.textMuted },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   badgeText: { fontSize: 11, fontWeight: '700' },
-  recordMeta: { fontSize: 12, color: Colors.textMuted },
-  recordNotes: { fontSize: 12, color: Colors.textMuted, marginTop: 4, fontStyle: 'italic' },
+  recordMeta: { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
+  recordNotes: { fontSize: 12, color: Colors.textMuted, marginTop: 8, fontStyle: 'italic', borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 8 },
 });

@@ -1,4 +1,5 @@
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
@@ -44,10 +45,7 @@ export default function DashboardScreen() {
       const map = new Map<string, MedicationWithStatus>();
       for (const item of data.schedule) {
         if (!map.has(item.medication.id)) map.set(item.medication.id, { ...item.medication, todayLogs: [] });
-        if (item.log) {
-          const entry = map.get(item.medication.id)!;
-          entry.todayLogs.push(item.log as never);
-        }
+        if (item.log) map.get(item.medication.id)!.todayLogs.push(item.log as never);
       }
       return Array.from(map.values());
     },
@@ -56,102 +54,119 @@ export default function DashboardScreen() {
   const lastRecord = bpPaginated?.items?.[0] ?? null;
   const takenMeds = todayMeds.filter((m) => m.todayLogs.some((l) => l.status === 'TAKEN')).length;
   const compliancePct = todayMeds.length > 0 ? Math.round((takenMeds / todayMeds.length) * 100) : 0;
+  const isRefreshing = false;
 
-  const onRefresh = () => {
-    void refetchBP();
-    void refetchStats();
-    void refetchMeds();
-  };
+  const onRefresh = () => { void refetchBP(); void refetchStats(); void refetchMeds(); };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} tintColor={Colors.primary} />}
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
     >
-      {/* Greeting */}
-      <View style={styles.greeting}>
-        <Text style={styles.greetingText}>{getGreeting()}, {firstName}!</Text>
-        <Text style={styles.greetingSubtitle}>Berikut ringkasan kesehatan Anda hari ini</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>{getGreeting()},</Text>
+          <Text style={styles.greetingName}>{firstName}!</Text>
+        </View>
+        <TouchableOpacity style={styles.notifBtn}>
+          <Ionicons name="notifications-outline" size={22} color={Colors.text} />
+        </TouchableOpacity>
       </View>
 
-      {/* BP Hero Card */}
+      {/* BP Card */}
       {bpLoading ? (
-        <View style={[styles.card, styles.skeleton]} />
+        <View style={styles.skeleton} />
       ) : lastRecord ? (
         <View style={[styles.bpCard, { borderLeftColor: BPColors[lastRecord.category] }]}>
-          <Text style={styles.bpCardLabel}>Tekanan Darah Terakhir</Text>
-          <Text style={styles.bpValue}>{lastRecord.systolic}/{lastRecord.diastolic}</Text>
-          <Text style={styles.bpUnit}>mmHg</Text>
-          <View style={[styles.badge, { backgroundColor: BPColors[lastRecord.category] + '20' }]}>
-            <Text style={[styles.badgeText, { color: BPColors[lastRecord.category] }]}>
-              {BPLabels[lastRecord.category]}
-            </Text>
+          <View style={styles.bpCardRow}>
+            <View>
+              <Text style={styles.bpCardLabel}>Tekanan Darah Terakhir</Text>
+              <Text style={styles.bpValue}>{lastRecord.systolic}/{lastRecord.diastolic}</Text>
+              <Text style={styles.bpUnit}>mmHg{lastRecord.pulse ? ` · Nadi ${lastRecord.pulse} bpm` : ''}</Text>
+            </View>
+            <View style={[styles.bpBadge, { backgroundColor: BPColors[lastRecord.category] + '15' }]}>
+              <Text style={[styles.bpBadgeText, { color: BPColors[lastRecord.category] }]}>
+                {BPLabels[lastRecord.category]}
+              </Text>
+            </View>
           </View>
-          {lastRecord.pulse && (
-            <Text style={styles.bpPulse}>Nadi: {lastRecord.pulse} bpm</Text>
-          )}
+          <TouchableOpacity style={styles.bpCardAction} onPress={() => router.push('/(tabs)/monitoring')}>
+            <Text style={styles.bpCardActionText}>Catat pengukuran baru</Text>
+            <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.bpCardEmpty}>
-          <Text style={styles.bpCardEmptyTitle}>Tekanan Darah Terakhir</Text>
-          <Text style={styles.bpCardEmptyText}>Belum ada data. Mulai catat sekarang!</Text>
+          <Ionicons name="heart-outline" size={32} color="rgba(255,255,255,0.7)" style={{ marginBottom: 8 }} />
+          <Text style={styles.bpCardEmptyTitle}>Belum ada data tekanan darah</Text>
+          <Text style={styles.bpCardEmptyText}>Mulai catat untuk memantau kesehatan Anda</Text>
           <TouchableOpacity style={styles.bpCardBtn} onPress={() => router.push('/(tabs)/monitoring')}>
             <Text style={styles.bpCardBtnText}>Catat Sekarang</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Stat cards */}
+      {/* Stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>
-            {bpStats ? `${bpStats.avgSystolic}/${bpStats.avgDiastolic}` : '–'}
-          </Text>
+          <Ionicons name="stats-chart" size={18} color={Colors.primary} style={{ marginBottom: 6 }} />
+          <Text style={styles.statValue}>{bpStats ? `${bpStats.avgSystolic}/${bpStats.avgDiastolic}` : '–'}</Text>
           <Text style={styles.statLabel}>Rata-rata 30 Hari</Text>
           <Text style={styles.statSub}>{bpStats?.totalRecords ?? 0} pengukuran</Text>
         </View>
         <View style={styles.statCard}>
+          <Ionicons name="medical" size={18} color={compliancePct >= 80 ? Colors.success : Colors.warning} style={{ marginBottom: 6 }} />
           <Text style={[styles.statValue, { color: compliancePct >= 80 ? Colors.success : Colors.warning }]}>
             {compliancePct}%
           </Text>
           <Text style={styles.statLabel}>Kepatuhan Obat</Text>
-          <Text style={styles.statSub}>{takenMeds}/{todayMeds.length} obat</Text>
+          <Text style={styles.statSub}>{takenMeds}/{todayMeds.length} obat hari ini</Text>
         </View>
       </View>
 
       {/* Chat CTA */}
       <TouchableOpacity style={styles.chatCta} onPress={() => router.push('/(tabs)/chat')}>
-        <Text style={styles.chatCtaIcon}>💬</Text>
+        <View style={styles.chatCtaIcon}>
+          <Ionicons name="chatbubble-ellipses" size={20} color="#fff" />
+        </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.chatCtaTitle}>Asisten Tensi-Bot</Text>
+          <Text style={styles.chatCtaTitle}>Asisten AI Tensi-Bot</Text>
           <Text style={styles.chatCtaSub}>Tanya apa saja tentang hipertensi Anda</Text>
         </View>
-        <Text style={styles.chatCtaArrow}>Mulai</Text>
+        <View style={styles.chatCtaBtn}>
+          <Text style={styles.chatCtaBtnText}>Mulai</Text>
+        </View>
       </TouchableOpacity>
 
       {/* Today meds */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Obat Hari Ini</Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/obat')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/obat')} style={styles.sectionLinkRow}>
             <Text style={styles.sectionLink}>Kelola</Text>
+            <Ionicons name="chevron-forward" size={13} color={Colors.primary} />
           </TouchableOpacity>
         </View>
         {medsLoading ? (
-          <View style={[styles.skeleton, { height: 60, borderRadius: 12 }]} />
+          <ActivityIndicator color={Colors.primary} style={{ paddingVertical: 16 }} />
         ) : todayMeds.length === 0 ? (
-          <Text style={styles.emptyText}>Belum ada jadwal obat hari ini</Text>
+          <View style={styles.emptyBox}>
+            <Ionicons name="medical-outline" size={28} color={Colors.border} />
+            <Text style={styles.emptyText}>Belum ada jadwal obat hari ini</Text>
+          </View>
         ) : (
           todayMeds.slice(0, 3).map((med) => {
             const taken = med.todayLogs.some((l) => l.status === 'TAKEN');
             return (
               <View key={med.id} style={styles.medItem}>
-                <Text style={styles.medName}>{med.name}</Text>
-                <Text style={styles.medDosage}>{med.dosage} · {med.times.join(', ')}</Text>
+                <View style={[styles.medDot, { backgroundColor: taken ? Colors.success : Colors.warning }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.medName}>{med.name}</Text>
+                  <Text style={styles.medDosage}>{med.dosage} · {med.times?.join(', ')}</Text>
+                </View>
                 <View style={[styles.medBadge, { backgroundColor: taken ? '#dcfce7' : '#fef9c3' }]}>
                   <Text style={[styles.medBadgeText, { color: taken ? Colors.success : '#a16207' }]}>
-                    {taken ? 'Sudah diminum' : 'Belum diminum'}
+                    {taken ? 'Sudah' : 'Belum'}
                   </Text>
                 </View>
               </View>
@@ -165,42 +180,48 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: 16, paddingBottom: 32 },
-  greeting: { marginBottom: 16 },
-  greetingText: { fontSize: 22, fontWeight: '800', color: Colors.text },
-  greetingSubtitle: { fontSize: 13, color: Colors.textMuted, marginTop: 2 },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  skeleton: { backgroundColor: '#E8F4FD', marginBottom: 12, height: 130, borderRadius: 16 },
-  bpCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 12, borderLeftWidth: 5, elevation: 2 },
-  bpCardLabel: { fontSize: 12, color: Colors.textMuted, fontWeight: '600', marginBottom: 6 },
-  bpValue: { fontSize: 48, fontWeight: '900', color: Colors.text, lineHeight: 52 },
-  bpUnit: { fontSize: 13, color: Colors.textMuted, marginBottom: 8 },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginBottom: 6 },
-  badgeText: { fontSize: 12, fontWeight: '700' },
-  bpPulse: { fontSize: 12, color: Colors.textMuted },
-  bpCardEmpty: { backgroundColor: Colors.primaryDark, borderRadius: 16, padding: 20, marginBottom: 12 },
-  bpCardEmptyTitle: { fontSize: 13, color: Colors.primaryMid, fontWeight: '600', marginBottom: 6 },
-  bpCardEmptyText: { fontSize: 15, color: '#fff', marginBottom: 14 },
-  bpCardBtn: { backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 20 },
+  content: { paddingBottom: 32 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 20, paddingTop: 52, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.border, marginBottom: 16 },
+  greeting: { fontSize: 14, color: Colors.textMuted },
+  greetingName: { fontSize: 24, fontWeight: '800', color: Colors.text },
+  notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.background, justifyContent: 'center', alignItems: 'center' },
+  skeleton: { height: 130, backgroundColor: Colors.primaryLight, borderRadius: 16, marginHorizontal: 16, marginBottom: 12 },
+  bpCard: { backgroundColor: '#fff', borderRadius: 16, padding: 18, marginHorizontal: 16, marginBottom: 12, borderLeftWidth: 4, elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8 },
+  bpCardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  bpCardLabel: { fontSize: 11, color: Colors.textMuted, fontWeight: '600', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  bpValue: { fontSize: 44, fontWeight: '900', color: Colors.text, lineHeight: 48 },
+  bpUnit: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
+  bpBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignSelf: 'flex-start' },
+  bpBadgeText: { fontSize: 12, fontWeight: '700' },
+  bpCardAction: { flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, gap: 4 },
+  bpCardActionText: { fontSize: 12, color: Colors.primary, fontWeight: '600' },
+  bpCardEmpty: { backgroundColor: Colors.primaryDark, borderRadius: 16, padding: 20, marginHorizontal: 16, marginBottom: 12, alignItems: 'center' },
+  bpCardEmptyTitle: { fontSize: 15, color: '#fff', fontWeight: '700', textAlign: 'center' },
+  bpCardEmptyText: { fontSize: 12, color: Colors.primaryMid, textAlign: 'center', marginTop: 4, marginBottom: 16 },
+  bpCardBtn: { backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 24 },
   bpCardBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 14, padding: 14, elevation: 2 },
-  statValue: { fontSize: 22, fontWeight: '800', color: Colors.primary },
+  statsRow: { flexDirection: 'row', gap: 10, marginHorizontal: 16, marginBottom: 12 },
+  statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 14, padding: 14, elevation: 2, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6 },
+  statValue: { fontSize: 20, fontWeight: '800', color: Colors.primary },
   statLabel: { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
-  statSub: { fontSize: 11, color: Colors.primaryMid, marginTop: 4 },
-  chatCta: { backgroundColor: Colors.primaryDark, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  chatCtaIcon: { fontSize: 28 },
+  statSub: { fontSize: 10, color: Colors.primaryMid, marginTop: 3 },
+  chatCta: { backgroundColor: Colors.primaryDark, borderRadius: 16, padding: 14, marginHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+  chatCtaIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center' },
   chatCtaTitle: { color: '#fff', fontWeight: '700', fontSize: 14 },
   chatCtaSub: { color: Colors.primaryMid, fontSize: 11, marginTop: 2 },
-  chatCtaArrow: { color: '#fff', fontWeight: '700', fontSize: 12, backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  section: { backgroundColor: '#fff', borderRadius: 16, padding: 16, elevation: 2 },
+  chatCtaBtn: { backgroundColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  chatCtaBtnText: { color: '#fff', fontWeight: '700', fontSize: 12 },
+  section: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginHorizontal: 16, elevation: 2, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
+  sectionLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   sectionLink: { fontSize: 12, color: Colors.primary, fontWeight: '600' },
-  emptyText: { color: Colors.textMuted, fontSize: 13, textAlign: 'center', paddingVertical: 16 },
-  medItem: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  medName: { fontSize: 14, fontWeight: '700', color: Colors.text },
-  medDosage: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
-  medBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, marginTop: 5 },
+  emptyBox: { alignItems: 'center', paddingVertical: 20, gap: 8 },
+  emptyText: { color: Colors.textMuted, fontSize: 13 },
+  medItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 10 },
+  medDot: { width: 8, height: 8, borderRadius: 4 },
+  medName: { fontSize: 14, fontWeight: '600', color: Colors.text },
+  medDosage: { fontSize: 11, color: Colors.textMuted, marginTop: 1 },
+  medBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   medBadgeText: { fontSize: 11, fontWeight: '600' },
 });

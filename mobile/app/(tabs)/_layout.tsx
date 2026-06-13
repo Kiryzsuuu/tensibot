@@ -1,9 +1,17 @@
 import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
-import { Text } from 'react-native';
 
-function Icon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  return <Text style={{ fontSize: focused ? 22 : 20, opacity: focused ? 1 : 0.6 }}>{emoji}</Text>;
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+function TabIcon({ name, focused }: { name: IoniconsName; focused: boolean }) {
+  return (
+    <Ionicons
+      name={name}
+      size={22}
+      color={focused ? Colors.primary : Colors.textMuted}
+    />
+  );
 }
 
 export default function TabsLayout() {
@@ -17,45 +25,56 @@ export default function TabsLayout() {
           backgroundColor: '#fff',
           borderTopColor: Colors.border,
           borderTopWidth: 1,
-          paddingBottom: 4,
-          height: 60,
+          paddingBottom: 6,
+          paddingTop: 4,
+          height: 64,
         },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
       }}
     >
       <Tabs.Screen
         name="dashboard"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ focused }) => <Icon emoji="🏠" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="monitoring"
         options={{
           title: 'Tensi',
-          tabBarIcon: ({ focused }) => <Icon emoji="📊" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name={focused ? 'pulse' : 'pulse-outline'} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="chat"
         options={{
           title: 'AI Chat',
-          tabBarIcon: ({ focused }) => <Icon emoji="💬" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="obat"
         options={{
           title: 'Obat',
-          tabBarIcon: ({ focused }) => <Icon emoji="💊" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name={focused ? 'medical' : 'medical-outline'} focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profil"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ focused }) => <Icon emoji="👤" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} />
+          ),
         }}
       />
     </Tabs>

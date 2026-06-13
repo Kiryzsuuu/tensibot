@@ -22,7 +22,19 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: process.env['FRONTEND_URL'] ?? 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+      const allowed = [
+        process.env['FRONTEND_URL'] ?? 'http://localhost:3000',
+        'http://localhost:3000',
+        'http://10.0.2.2:3000',
+      ];
+      if (allowed.includes(origin) || process.env['NODE_ENV'] === 'development') {
+        return callback(null, true);
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
