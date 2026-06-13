@@ -145,11 +145,17 @@ export async function getTodaySchedule(userId: string): Promise<TodayScheduleIte
     .where('isActive', '==', true)
     .get();
 
+  const toDate = (val: unknown): Date => {
+    if (val instanceof Date) return val;
+    if (val && typeof val === 'object' && 'toDate' in val) return (val as { toDate(): Date }).toDate();
+    return new Date(val as string);
+  };
+
   const medications = medsSnapshot.docs
     .map(d => ({ id: d.id, ...d.data() } as UserMedication))
     .filter(med => {
-      const startDate = med.startDate instanceof Date ? med.startDate : new Date(med.startDate as unknown as string);
-      const endDate = med.endDate ? (med.endDate instanceof Date ? med.endDate : new Date(med.endDate as unknown as string)) : null;
+      const startDate = toDate(med.startDate);
+      const endDate = med.endDate ? toDate(med.endDate) : null;
       return startDate <= endOfDay && (!endDate || endDate >= startOfDay);
     });
 

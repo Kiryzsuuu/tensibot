@@ -224,7 +224,7 @@ function AddMedModal({ visible, onClose, onSuccess, openTimePicker }: { visible:
         frequency: `${timesArr.length}x sehari`,
         times: timesArr,
         startDate: new Date().toISOString(),
-        instructions: instructions.trim() || undefined,
+        notes: instructions.trim() || undefined,
       });
       reset();
       onSuccess();
